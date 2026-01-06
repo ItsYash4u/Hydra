@@ -1,0 +1,4 @@
+Operations to perform:
+  Apply all migrations: account, admin, auth, contenttypes, hydroponics, mfa, sessions, socialaccount, users
+Running migrations:
+  No migrations to apply.

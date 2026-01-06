@@ -1,0 +1,211 @@
+{% extends 'vertical.html' %}
+{% load static i18n %}
+
+{% block title %}{{ device.name }} Details{% endblock title %}
+
+{% block page_title %}
+{% include 'partials/page-title.html' with title=device.name subtitle="Device Details" %}
+{% endblock page_title %}
+
+{% extends 'vertical.html' %}
+{% load static i18n %}
+
+{% block title %}{{ device.name }} - Device Report{% endblock title %}
+
+{% block page_title %}
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <button onclick="window.print()" class="btn btn-info me-2"><i class="ti ti-printer me-1"></i> Print
+                    Report</button>
+                <a href="{% url 'hydroponics:dashboard' %}" class="btn btn-secondary"><i class="ti ti-arrow-left me-1"></i>
+                    Back</a>
+            </div>
+            <h4 class="page-title">Device Report: {{ device.sensor_id }}</h4>
+        </div>
+    </div>
+</div>
+{% endblock page_title %}
+
+{% block page_content %}
+
+<div class="row">
+    <!-- Main Device Info Card -->
+    <div class="col-xl-4 col-lg-5">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="avatar-lg mx-auto mb-3">
+                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle display-4">
+                        <i class="ti ti-cpu"></i>
+                    </span>
+                </div>
+                <h3 class="mb-1">{{ device.device_id }}</h3>
+                <p class="text-muted mb-3">{{ device.device_type|default:"Hydroponics System" }}</p>
+
+                <div class="d-flex justify-content-center gap-2 mb-4">
+                    <span class="badge bg-success fs-14 px-3 py-2 rounded-pill">
+                        <i class="ti ti-point-filled me-1"></i> ONLINE
+                    </span>
+                </div>
+
+                <div class="row g-0 border-top pt-3 text-start">
+                    <div class="col-6">
+                        <p class="text-muted mb-1 font-12">REGISTERED</p>
+                        <h5 class="my-0 text-dark">{{ device.created_at|date:"M d, Y" }}</h5>
+                    </div>
+                    <div class="col-6">
+                        <p class="text-muted mb-1 font-12">OWNER</p>
+                        <h5 class="my-0 text-dark">{{ device.user.email }}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Location & Dates -->
+        <div class="card">
+            <div class="card-body">
+                <h4 class="header-title mb-3">Location & Maintenance</h4>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2"><i class="ti ti-map-pin me-2 text-primary"></i> <strong>Coordinates:</strong> {{
+                        device.latitude }}, {{ device.longitude }}</li>
+                    <li class="mb-2 text-success"><i class="ti ti-check me-2"></i> <strong>System Status:</strong>
+                        Optimal</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data & History -->
+    <div class="col-xl-8 col-lg-7">
+
+        <!-- Sensor Readings -->
+        <h4 class="mb-3">Live Sensor Readings</h4>
+        <div class="row mb-4">
+            {% for data in sensor_data %}
+            <div class="col-md-4 col-sm-6 mb-3">
+                <div class="card h-100 border-start border-4 border-primary">
+                    <div class="card-body p-3">
+                        <p class="text-muted text-uppercase fs-12 fw-bold mb-1">{{ data.name }}</p>
+                        <h3 class="mb-0">{{ data.value|default:"--" }} <small class="fs-14 text-muted">{{ data.unit
+                                }}</small></h3>
+                        <small class="text-muted d-block mt-2">
+                            {% if data.has_data %}<i class="ti ti-clock"></i> {{ data.timestamp|time:"H:i" }}{% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-light">No sensors connected to this device.</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Tabs for Logs -->
+        <div class="card">
+            <div class="card-body">
+                <ul class="nav nav-tabs nav-bordered mb-3">
+                    <li class="nav-item">
+                        <a href="#alerts-tab" data-bs-toggle="tab" aria-expanded="false" class="nav-link active">Alerts
+                            History</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#maintenance-tab" data-bs-toggle="tab" aria-expanded="true"
+                            class="nav-link">Maintenance Logs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#activity-tab" data-bs-toggle="tab" aria-expanded="true" class="nav-link">Activity
+                            Log</a>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <!-- Alerts Tab -->
+                    <div class="tab-pane show active" id="alerts-tab">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-centered table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Message</th>
+                                        <th>Severity</th>
+                                        <th>Time</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for alert in recent_alerts %}
+                                    <tr>
+                                        <td>{{ alert.message }}</td>
+                                        <td>
+                                            <span
+                                                class="badge {% if alert.rule.severity == 'critical' %}bg-danger{% elif alert.rule.severity == 'warning' %}bg-warning{% else %}bg-info{% endif %}">
+                                                {{ alert.rule.severity|title }}
+                                            </span>
+                                        </td>
+                                        <td>{{ alert.triggered_at|date:"M d, H:i" }}</td>
+                                        <td>{{ alert.status|title }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">No recent alerts.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Maintenance Tab -->
+                    <div class="tab-pane" id="maintenance-tab">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-centered table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Performed By</th>
+                                        <th>Date</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in maintenance_history %}
+                                    <tr>
+                                        <td>{{ log.get_maintenance_type_display }}</td>
+                                        <td>{{ log.performed_by.name|default:"Technician" }}</td>
+                                        <td>{{ log.performed_at|date:"M d, Y" }}</td>
+                                        <td>{{ log.description|truncatechars:30 }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">No maintenance records found.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Activity Tab -->
+                    <div class="tab-pane" id="activity-tab">
+                        <ul class="list-unstyled timeline-sm">
+                            {% for act in recent_activity %}
+                            <li class="timeline-sm-item">
+                                <span class="timeline-sm-date">{{ act.timestamp|date:"H:i" }}</span>
+                                <h5 class="mt-0 mb-1">{{ act.get_action_type_display }}</h5>
+                                <p class="text-muted font-13 mb-0">{{ act.performed_by.name }} updated settings.</p>
+                            </li>
+                            {% empty %}
+                            <li class="p-3 text-center text-muted">No recent activity.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock page_content %}

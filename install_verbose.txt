@@ -1,0 +1,4 @@
+Using pip 25.3 from c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\pip (python 3.12)
+ERROR: Invalid requirement: '': Expected package name at the start of dependency specifier
+    
+    ^

@@ -1,0 +1,463 @@
+Starting server...
+Server is running...
+Watching for file changes with StatReloader
+INFO 2025-12-04 12:55:29,579 autoreload 12816 27240 Watching for file changes with StatReloader
+[04/Dec/2025 13:10:03] "GET /admin/hydroponics/alert/ HTTP/1.1" 200 86324
+[04/Dec/2025 13:10:04] "GET /static/admin/css/base.css HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/css/dark_mode.css HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/js/vendor/jquery/jquery.js HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/css/responsive.css HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/js/jquery.init.js HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/js/admin/RelatedObjectLookups.js HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/css/changelists.css HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/js/prepopulate.js HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/js/actions.js HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/js/urlify.js HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/js/vendor/xregexp/xregexp.js HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/js/core.js HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/debug_toolbar/js/toolbar.js HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/img/search.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/debug_toolbar/css/toolbar.css HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/js/theme.js HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/js/filters.js HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+[04/Dec/2025 13:10:04] "GET /static/debug_toolbar/css/print.css HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/img/tooltag-add.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/img/icon-addlink.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/img/sorting-icons.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/admin/img/icon-viewlink.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:10:04] "GET /static/debug_toolbar/js/utils.js HTTP/1.1" 304 0
+Internal Server Error: /favicon.ico/
+Traceback (most recent call last):
+  File "C:\Users\AYUSH\Downloads\admin\Greeva\greeva\pages\views.py", line 18, in dynamic_pages_view
+    return render(request, f'pages/{template_name}.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: pages/favicon.ico.html
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AYUSH\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AYUSH\Downloads\admin\Greeva\greeva\pages\views.py", line 20, in dynamic_pages_view
+    return render(request, f'pages/pages-404.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: pages/pages-404.html
+ERROR 2025-12-04 13:10:04,746 log 12816 10696 Internal Server Error: /favicon.ico/
+Traceback (most recent call last):
+  File "C:\Users\AYUSH\Downloads\admin\Greeva\greeva\pages\views.py", line 18, in dynamic_pages_view
+    return render(request, f'pages/{template_name}.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: pages/favicon.ico.html
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AYUSH\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AYUSH\Downloads\admin\Greeva\greeva\pages\views.py", line 20, in dynamic_pages_view
+    return render(request, f'pages/pages-404.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: pages/pages-404.html
+[04/Dec/2025 13:10:04] "GET /favicon.ico/ HTTP/1.1" 500 127772
+[04/Dec/2025 13:10:48,919] - Broken pipe from ('127.0.0.1', 51511)
+[04/Dec/2025 13:10:48,958] - Broken pipe from ('127.0.0.1', 56266)
+[04/Dec/2025 13:10:48] "GET /admin/auth/ HTTP/1.1" 200 18336
+Internal Server Error: /favicon.ico/
+Traceback (most recent call last):
+  File "C:\Users\AYUSH\Downloads\admin\Greeva\greeva\pages\views.py", line 18, in dynamic_pages_view
+    return render(request, f'pages/{template_name}.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: pages/favicon.ico.html
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AYUSH\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AYUSH\Downloads\admin\Greeva\greeva\pages\views.py", line 20, in dynamic_pages_view
+    return render(request, f'pages/pages-404.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: pages/pages-404.html
+ERROR 2025-12-04 13:10:49,152 log 12816 5660 Internal Server Error: /favicon.ico/
+Traceback (most recent call last):
+  File "C:\Users\AYUSH\Downloads\admin\Greeva\greeva\pages\views.py", line 18, in dynamic_pages_view
+    return render(request, f'pages/{template_name}.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: pages/favicon.ico.html
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AYUSH\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AYUSH\Downloads\admin\Greeva\greeva\pages\views.py", line 20, in dynamic_pages_view
+    return render(request, f'pages/pages-404.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: pages/pages-404.html
+[04/Dec/2025 13:10:49] "GET /favicon.ico/ HTTP/1.1" 500 127759
+[04/Dec/2025 13:11:12] "GET /admin/ HTTP/1.1" 200 26799
+[04/Dec/2025 13:11:12] "GET /static/admin/css/dark_mode.css HTTP/1.1" 304 0
+[04/Dec/2025 13:11:12] "GET /static/admin/css/base.css HTTP/1.1" 304 0
+[04/Dec/2025 13:11:12] "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 304 0
+[04/Dec/2025 13:11:12] "GET /static/admin/css/responsive.css HTTP/1.1" 304 0
+[04/Dec/2025 13:11:12] "GET /static/debug_toolbar/js/toolbar.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:12] "GET /static/admin/css/dashboard.css HTTP/1.1" 304 0
+[04/Dec/2025 13:11:12] "GET /static/debug_toolbar/css/toolbar.css HTTP/1.1" 304 0
+[04/Dec/2025 13:11:12] "GET /static/debug_toolbar/css/print.css HTTP/1.1" 304 0
+[04/Dec/2025 13:11:12] "GET /static/admin/js/theme.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:12] "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:12] "GET /static/debug_toolbar/js/utils.js HTTP/1.1" 304 0
+Internal Server Error: /favicon.ico/
+Traceback (most recent call last):
+  File "C:\Users\AYUSH\Downloads\admin\Greeva\greeva\pages\views.py", line 18, in dynamic_pages_view
+    return render(request, f'pages/{template_name}.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: pages/favicon.ico.html
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AYUSH\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AYUSH\Downloads\admin\Greeva\greeva\pages\views.py", line 20, in dynamic_pages_view
+    return render(request, f'pages/pages-404.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: pages/pages-404.html
+ERROR 2025-12-04 13:11:12,374 log 12816 2664 Internal Server Error: /favicon.ico/
+Traceback (most recent call last):
+  File "C:\Users\AYUSH\Downloads\admin\Greeva\greeva\pages\views.py", line 18, in dynamic_pages_view
+    return render(request, f'pages/{template_name}.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: pages/favicon.ico.html
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AYUSH\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AYUSH\Downloads\admin\Greeva\greeva\pages\views.py", line 20, in dynamic_pages_view
+    return render(request, f'pages/pages-404.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: pages/pages-404.html
+[04/Dec/2025 13:11:12] "GET /favicon.ico/ HTTP/1.1" 500 127754
+[04/Dec/2025 13:11:14] "GET / HTTP/1.1" 200 153709
+[04/Dec/2025 13:11:14] "GET /static/js/config.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/vendor/jsvectormap/jsvectormap.min.css HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/css/app.min.css HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/debug_toolbar/js/toolbar.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/logo.png HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/css/icons.min.css HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/logo-sm.png HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/logo-dark.png HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/js/app.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/js/vendors.min.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/vendor/apexcharts/apexcharts.min.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/vendor/jsvectormap/maps/world.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/vendor/jsvectormap/maps/world-merc.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/vendor/jsvectormap/jsvectormap.min.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/js/pages/dashboard.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/flags/us.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/flags/in.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/debug_toolbar/css/toolbar.css HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/users/avatar-2.jpg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/users/avatar-4.jpg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/users/avatar-10.jpg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/users/avatar-7.jpg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/brands/slack.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/brands/bitbucket.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/brands/gitlab.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/brands/dribbble.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/brands/google-cloud.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/brands/dropbox.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/brands/aws.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/brands/digital-ocean.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/users/avatar-1.jpg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/brands/bootstrap.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/products/logo/logo-1.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/products/logo/logo-3.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/products/logo/logo-2.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/products/logo/logo-4.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/users/avatar-3.jpg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/products/logo/logo-5.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/users/avatar-5.jpg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/flags/br.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/images/flags/ca.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/fonts/tabler-icons.woff2?v3.4.0 HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/debug_toolbar/css/print.css HTTP/1.1" 304 0
+[04/Dec/2025 13:11:14] "GET /static/debug_toolbar/js/utils.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /index/ HTTP/1.1" 200 153719
+[04/Dec/2025 13:11:24] "GET /static/vendor/jsvectormap/jsvectormap.min.css HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/css/app.min.css HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/css/icons.min.css HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/logo.png HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/logo-sm.png HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/js/config.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/debug_toolbar/js/toolbar.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/users/avatar-1.jpg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/flags/us.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/logo-dark.png HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/js/vendors.min.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/js/app.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/vendor/apexcharts/apexcharts.min.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/vendor/jsvectormap/jsvectormap.min.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/vendor/jsvectormap/maps/world-merc.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/js/pages/dashboard.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/flags/in.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/vendor/jsvectormap/maps/world.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/debug_toolbar/css/toolbar.css HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/users/avatar-4.jpg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/users/avatar-2.jpg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/users/avatar-7.jpg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/brands/slack.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/brands/gitlab.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/users/avatar-10.jpg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/brands/dribbble.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/brands/bitbucket.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/brands/dropbox.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/brands/google-cloud.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/brands/digital-ocean.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/products/logo/logo-1.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/brands/aws.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/brands/bootstrap.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/products/logo/logo-2.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/users/avatar-5.jpg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/users/avatar-3.jpg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/products/logo/logo-3.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/products/logo/logo-5.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/flags/br.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/products/logo/logo-4.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:24] "GET /static/images/flags/ca.svg HTTP/1.1" 304 0
+[04/Dec/2025 13:11:25] "GET /static/debug_toolbar/css/print.css HTTP/1.1" 304 0
+[04/Dec/2025 13:11:25] "GET /static/debug_toolbar/js/utils.js HTTP/1.1" 304 0
+[04/Dec/2025 13:11:47] "GET /admin/ HTTP/1.1" 200 26799
+Internal Server Error: /favicon.ico/
+Traceback (most recent call last):
+  File "C:\Users\AYUSH\Downloads\admin\Greeva\greeva\pages\views.py", line 18, in dynamic_pages_view
+    return render(request, f'pages/{template_name}.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: pages/favicon.ico.html
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AYUSH\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AYUSH\Downloads\admin\Greeva\greeva\pages\views.py", line 20, in dynamic_pages_view
+    return render(request, f'pages/pages-404.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: pages/pages-404.html
+ERROR 2025-12-04 13:11:47,890 log 12816 5336 Internal Server Error: /favicon.ico/
+Traceback (most recent call last):
+  File "C:\Users\AYUSH\Downloads\admin\Greeva\greeva\pages\views.py", line 18, in dynamic_pages_view
+    return render(request, f'pages/{template_name}.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: pages/favicon.ico.html
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AYUSH\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AYUSH\Downloads\admin\Greeva\greeva\pages\views.py", line 20, in dynamic_pages_view
+    return render(request, f'pages/pages-404.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: pages/pages-404.html
+[04/Dec/2025 13:11:48] "GET /favicon.ico/ HTTP/1.1" 500 127754
+C:\Users\AYUSH\Downloads\admin\Greeva\greeva\pages\views.py changed, reloading.
+INFO 2025-12-04 13:15:53,826 autoreload 12816 27240 C:\Users\AYUSH\Downloads\admin\Greeva\greeva\pages\views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+December 04, 2025 - 12:55:30
+Django version 5.0.10, using settings 'config.settings.local'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CTRL-BREAK.
+
+

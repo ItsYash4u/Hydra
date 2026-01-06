@@ -1,0 +1,184 @@
+{% extends 'vertical.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock title %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/jsvectormap/dist/css/jsvectormap.min.css" rel="stylesheet" type="text/css">
+{% endblock extra_css %}
+
+{% block page_title %}
+{% include 'partials/page-title.html' with title="Dashboard" %}
+{% endblock page_title %}
+
+{% block page_content %}
+
+<!-- Summary Stats Row -->
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-success bg-opacity-10 border-success border-opacity-25">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0 text-success">Total Devices: {{ total_devices }}</h4>
+                        <span class="text-muted">System Overview</span>
+                    </div>
+                    <div class="d-flex gap-4 text-center">
+                        <div>
+                            <h4 class="mb-0 text-success">{{ online_devices }}</h4>
+                            <small>Online</small>
+                        </div>
+                        <div>
+                            <h4 class="mb-0 text-danger">{{ offline_devices }}</h4>
+                            <small>Offline</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Aggregated Averages Row -->
+<div class="row mb-3">
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100 border-bottom border-3 border-primary">
+            <div class="card-body">
+                <p class="text-uppercase text-muted fs-12 mb-2">Avg Temperature</p>
+                <h3 class="mb-0">{{ global_averages.temperature }} °C</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100 border-bottom border-3 border-info">
+            <div class="card-body">
+                <p class="text-uppercase text-muted fs-12 mb-2">Avg pH</p>
+                <h3 class="mb-0">{{ global_averages.ph }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100 border-bottom border-3 border-warning">
+            <div class="card-body">
+                <p class="text-uppercase text-muted fs-12 mb-2">Avg EC</p>
+                <h3 class="mb-0">{{ global_averages.ec }} mS/cm</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100 border-bottom border-3 border-success">
+            <div class="card-body">
+                <p class="text-uppercase text-muted fs-12 mb-2">Avg Humidity</p>
+                <h3 class="mb-0">{{ global_averages.humidity }} %</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- All Registered Devices Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">Registered Devices</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-centered mb-0 convert-to-datatable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Device ID</th>
+                                <th>Location</th>
+                                <th>Owner</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for device in devices %}
+                            <tr>
+                                <td>
+                                    <h5 class="fs-14 my-1 fw-bold">{{ device.device_id }}</h5>
+                                </td>
+                                <td>
+                                    {% if device.latitude and device.longitude %}
+                                    {{ device.latitude|floatformat:4 }}, {{ device.longitude|floatformat:4 }}
+                                    {% else %}
+                                    Unknown
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if device.user %}
+                                    {{ device.user.name|default:device.user.email }}
+                                    {% else %}
+                                    Unassigned
+                                    {% endif %}
+                                </td>
+                                <td><span class="badge bg-success">Online</span></td>
+                                <td>
+                                    <a href="{% url 'pages:analytics' %}?device_id={{ device.id }}"
+                                        class="btn btn-sm btn-primary">
+                                        <i class="ti ti-chart-bar me-1"></i> View Analytics
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">No devices found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Map Section (Moved to Bottom) -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">Device Locations</h4>
+            </div>
+            <div class="card-body p-0">
+                <div id="dashboard-map" style="height: 400px; width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Map Data passed from View (DTO Simulation) -->
+{{ chart_data.map_data|json_script:"map-data-json" }}
+
+{% endblock page_content %}
+
+{% block extra_javascript %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<!-- Leaflet CSS/JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const mapData = JSON.parse(document.getElementById('map-data-json').textContent);
+
+        // Map Init
+        if (document.getElementById('dashboard-map')) {
+            var map = L.map('dashboard-map').setView([20.59, 78.96], 5);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            mapData.forEach(point => {
+                const marker = L.marker([point.latitude, point.longitude]).addTo(map);
+                marker.bindPopup(`<b>${point.name}</b><br>${point.status}`);
+            });
+        }
+    });
+</script>
+{% endblock extra_javascript %}

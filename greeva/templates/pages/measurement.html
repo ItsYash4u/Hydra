@@ -1,0 +1,532 @@
+{% extends 'vertical.html' %}
+{% load static %}
+
+{% block title %}Measurements{% endblock title %}
+
+{% block extra_css %}
+<link href="{% static '/vendor/jsvectormap/jsvectormap.min.css' %}" rel="stylesheet" type="text/css">
+<!-- Drag and Drop Styles & Glassmorphism -->
+<style>
+    .sensor-block {
+        transition: all 0.3s ease;
+        cursor: grab;
+    }
+
+    .sensor-block:active {
+        cursor: grabbing;
+        transform: scale(0.98);
+    }
+
+    .sensor-card-glass {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border-radius: 16px;
+        overflow: hidden;
+        height: 100%;
+        position: relative;
+    }
+
+    [data-bs-theme="dark"] .sensor-card-glass {
+        background: rgba(40, 44, 52, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .sensor-icon-circle {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        margin-bottom: 12px;
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        box-shadow: 5px 5px 10px #d1d1d1, -5px -5px 10px #ffffff;
+    }
+
+    [data-bs-theme="dark"] .sensor-icon-circle {
+        background: linear-gradient(145deg, #2b303b, #242831);
+        box-shadow: 5px 5px 10px #1a1d24, -5px -5px 10px #383e4d;
+        color: #fff;
+    }
+
+    .status-border-success {
+        border-bottom: 4px solid #0acf97;
+    }
+
+    .status-border-warning {
+        border-bottom: 4px solid #ffbc00;
+    }
+
+    .status-border-danger {
+        border-bottom: 4px solid #fa5c7c;
+    }
+
+    .status-border-neutral {
+        border-bottom: 4px solid #98a6ad;
+    }
+
+    .ghost-cls {
+        opacity: 0.4;
+        background: #eef2f7;
+        border: 2px dashed #323a46;
+    }
+
+    /* --- Sensor Modal Styles --- */
+    .sensor-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .sensor-modal-overlay.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .sensor-modal-content {
+        width: 100%;
+        max-width: 480px;
+        margin: 20px;
+        transform: scale(0.9);
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    .sensor-modal-overlay.show .sensor-modal-content {
+        transform: scale(1);
+    }
+
+    .modal-sensor-value {
+        font-size: 3rem;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block page_title %}
+{% include 'partials/page-title.html' with title="Measurements" %}
+{% endblock page_title %}
+
+{% block page_content %}
+
+<div class="row">
+    <!-- Live Sensor Monitoring (Moved to Top) -->
+    <div class="col-12" id="dashboard-monitor-section">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="header-title mb-0">Live Sensor Monitor</h4>
+                <p class="text-muted small mb-0">Real-time data from all connected sensors.</p>
+            </div>
+            <button class="btn btn-soft-primary btn-sm" type="button" data-bs-toggle="collapse"
+                data-bs-target="#sensorLibraryPanel" aria-expanded="false" aria-controls="sensorLibraryPanel">
+                <i class="ti ti-layout-grid-add me-1"></i> Customize
+            </button>
+        </div>
+
+        <!-- Sensor Library (Hidden Customization Panel) -->
+        <div class="collapse mb-4" id="sensorLibraryPanel">
+            <div class="card bg-light bg-opacity-50 border-dashed border-primary">
+                <div class="card-body">
+                    <h5 class="card-title text-primary"><i class="ti ti-box-padding me-2"></i>Sensor Library</h5>
+                    <p class="card-subtitle text-muted mb-3">Drag items from here to the main grid below to add them.
+                        Move items back here to hide them.</p>
+                    <div id="sensor-library-list" class="row g-3" style="min-height: 100px;">
+                        <!-- JS renders inactive sensors here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Draggable Dashboard Grid -->
+        <div id="main-sensor-grid" class="row g-3 mb-4">
+            <!-- JS renders active sensor blocks here -->
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row">
+    <div class="col-xl-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="header-title">Environment Trends (7 Days)</h4>
+            </div>
+            <div class="card-body">
+                <div id="environment-chart" class="apex-charts" dir="ltr"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Map Row -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="header-title">Sensor Locations</h4>
+            </div>
+            <div class="card-body">
+                <div id="farm-map" style="height: 400px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JSON Data for JS -->
+{{ chart_data.dates|json_script:"dates-data" }}
+{{ chart_data.temps|json_script:"temps-data" }}
+{{ chart_data.map_data|json_script:"map-data" }}
+<!-- Inject Sensor Data for JS -->
+{{ sensor_averages|json_script:"sensor-real-data" }}
+
+<!-- Sensor Detail Modal -->
+<div id="sensor-modal-overlay" class="sensor-modal-overlay">
+    <div class="card sensor-card-glass sensor-modal-content">
+        <div class="card-body p-4 position-relative">
+            <!-- Close Button -->
+            <button type="button" class="btn-close position-absolute top-0 end-0 m-3" id="btn-close-modal"
+                aria-label="Close"></button>
+
+            <!-- Header -->
+            <div class="text-center mb-2">
+                <div id="modal-sensor-icon-bg" class="sensor-icon-circle mx-auto mb-3"
+                    style="width: 70px; height: 70px; font-size: 2rem;">
+                    <i id="modal-sensor-icon" class="ti ti-thermometer"></i>
+                </div>
+                <h4 id="modal-sensor-name" class="fw-bold mb-0">Temperature</h4>
+                <p id="modal-sensor-status-text" class="text-muted small">Status: Normal</p>
+            </div>
+
+            <!-- Main Visual (Gauge) -->
+            <div id="modal-sensor-chart" class="d-flex justify-content-center my-2" style="min-height: 200px;"></div>
+
+            <!-- Value Display -->
+            <div class="text-center mb-4 mt-n4 position-relative" style="z-index: 2;">
+                <div class="modal-sensor-value" id="modal-sensor-value">--</div>
+                <div class="text-muted fw-medium fs-5" id="modal-sensor-unit">°C</div>
+            </div>
+
+            <!-- Details Grid -->
+            <div class="row g-2 mb-4">
+                <div class="col-6">
+                    <div class="p-2 border rounded bg-secondary bg-opacity-10 text-center">
+                        <small class="d-block text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Ideal
+                            Range</small>
+                        <span class="fw-bold" id="modal-sensor-range">--</span>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-2 border rounded bg-secondary bg-opacity-10 text-center">
+                        <small class="d-block text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Last
+                            Update</small>
+                        <span class="fw-bold" id="modal-sensor-timestamp">Just now</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Controls (Conditional) -->
+            <div id="modal-controls" class="d-none">
+                <h6 class="border-bottom pb-2 mb-3 text-uppercase text-muted small fw-bold">Device Controls</h6>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fw-medium"><i class="ti ti-robot me-1"></i> Auto Mode</span>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="control-auto-toggle" checked>
+                    </div>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label small text-muted">Target Threshold</label>
+                    <div class="input-group input-group-sm">
+                        <button class="btn btn-outline-secondary" type="button" id="btn-decr"><i
+                                class="ti ti-minus"></i></button>
+                        <input type="text" class="form-control text-center" value="24.0" id="control-target-input">
+                        <button class="btn btn-outline-secondary" type="button" id="btn-incr"><i
+                                class="ti ti-plus"></i></button>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary w-100 mt-3 rounded-pill shadow-sm">
+                    <i class="ti ti-check me-1"></i> Apply Settings
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock page_content %}
+
+{% block extra_javascript %}
+<script src="{% static '/vendor/apexcharts/apexcharts.min.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // --- SENSOR GRID LOGIC ---
+        let realData = JSON.parse(document.getElementById('sensor-real-data').textContent || '{}');
+        const gridContainer = document.getElementById('main-sensor-grid');
+        const libraryContainer = document.getElementById('sensor-library-list');
+
+        const allSensors = [
+            { id: 'temperature', label: 'Temperature', unit: '°C', icon: 'ti-thermometer', color: 'primary', default: true, range: [18, 30], controls: true },
+            { id: 'ph', label: 'pH Level', unit: 'pH', icon: 'ti-gauge', color: 'success', default: true, range: [5.5, 7.5], controls: true },
+            { id: 'humidity', label: 'Humidity', unit: '%', icon: 'ti-droplet', color: 'info', default: true, range: [40, 80], controls: true },
+            { id: 'moisture', label: 'Soil Moisture', unit: '%', icon: 'ti-world', color: 'warning', default: true, range: [30, 80], controls: false },
+            { id: 'nitrogen', label: 'Nitrogen (N)', unit: 'mg/kg', icon: 'ti-plant', color: 'success', default: true, range: [100, 200], controls: false },
+            { id: 'phosphorus', label: 'Phosphorus (P)', unit: 'mg/kg', icon: 'ti-filter', color: 'success', default: true, range: [30, 80], controls: false },
+            { id: 'potassium', label: 'Potassium (K)', unit: 'mg/kg', icon: 'ti-bolt', color: 'success', default: true, range: [100, 300], controls: false },
+            { id: 'light_hours', label: 'Light Hours', unit: 'hrs', icon: 'ti-sun', color: 'warning', default: true, range: [10, 18], controls: true },
+            { id: 'conductivity', label: 'Electrical Conductivity', unit: 'mS/cm', icon: 'ti-activity', color: 'info', default: true, range: [1.0, 3.0], controls: false },
+            { id: 'ammonia', label: 'Ammonia', unit: 'ppm', icon: 'ti-flask', color: 'danger', default: true, range: [0, 0.5], controls: false },
+            { id: 'dissolved_oxygen', label: 'Dissolved Oxygen', unit: 'mg/L', icon: 'ti-activity', color: 'info', default: true, range: [6, 10], controls: true },
+            { id: 'salinity', label: 'Salinity', unit: 'ppt', icon: 'ti-salt', color: 'primary', default: true, range: [0, 2], controls: false },
+            { id: 'turbidity', label: 'Turbidity', unit: 'NTU', icon: 'ti-eye', color: 'secondary', default: true, range: [0, 5], controls: false },
+            { id: 'water_level', label: 'Water Tank Level', unit: '%', icon: 'ti-server', color: 'primary', default: false, range: [20, 100], controls: true },
+            { id: 'water_flow', label: 'Water Flow', unit: 'L/min', icon: 'ti-waves-electricity', color: 'info', default: false, range: [5, 20], controls: true },
+        ];
+
+        function createSensorBlock(sensor) {
+            let value = '--';
+            let status = 'neutral';
+            let statusLabel = 'Offline';
+
+            if (realData[sensor.id]) {
+                let d = realData[sensor.id];
+                value = d.value.toFixed(1);
+                status = d.status === 'warning' ? 'warning' : (d.status === 'critical' ? 'danger' : 'success');
+                statusLabel = d.label;
+            } else if (['ammonia', 'dissolved_oxygen', 'salinity'].includes(sensor.id)) {
+                statusLabel = 'No Data';
+            }
+
+            let colorCls = 'text-' + status;
+            let borderCls = 'status-border-' + status;
+
+            const col = document.createElement('div');
+            col.className = 'col-sm-6 col-md-4 col-xl-3 sensor-block ui-state-default';
+            col.setAttribute('data-id', sensor.id);
+            col.onclick = function () { openSensorModal(sensor, value, status, statusLabel); };
+
+            col.innerHTML = `
+                <div class="card h-100 sensor-card-glass ${borderCls}">
+                    <div class="card-body p-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="sensor-icon-circle">
+                                <i class="ti ${sensor.icon} ${colorCls}"></i>
+                            </div>
+                            <span class="badge ${status === 'neutral' ? 'bg-secondary' : 'bg-' + status} bg-opacity-75">${statusLabel}</span>
+                        </div>
+                        <h5 class="text-muted fw-normal mt-0" title="${sensor.label}">${sensor.label}</h5>
+                        <h3 class="mt-2 mb-1 fw-bold">${value} <span class="fs-6 text-muted fw-normal">${sensor.unit}</span></h3>
+                    </div>
+                </div>
+            `;
+            return col;
+        }
+
+        /* --- SENSOR MODAL LOGIC --- */
+        const modalOverlay = document.getElementById('sensor-modal-overlay');
+        const modalName = document.getElementById('modal-sensor-name');
+        const modalIcon = document.getElementById('modal-sensor-icon');
+        const modalValue = document.getElementById('modal-sensor-value');
+        const modalUnit = document.getElementById('modal-sensor-unit');
+        const modalRange = document.getElementById('modal-sensor-range');
+        const modalStatusText = document.getElementById('modal-sensor-status-text');
+        const modalControls = document.getElementById('modal-controls');
+        let modalChart = null;
+
+        function openSensorModal(sensor, value, status, statusLabel) {
+            modalName.textContent = sensor.label;
+            modalValue.textContent = value;
+            modalUnit.textContent = sensor.unit;
+            modalIcon.className = 'ti ' + sensor.icon;
+            modalRange.textContent = sensor.range ? `${sensor.range[0]} - ${sensor.range[1]} ${sensor.unit}` : 'N/A';
+            modalStatusText.textContent = `Status: ${statusLabel}`;
+
+            let colorHex = status === 'success' ? '#0acf97' : status === 'warning' ? '#ffbc00' : status === 'danger' ? '#fa5c7c' : '#727cf5';
+            modalIcon.style.color = colorHex;
+
+            renderModalChart(value, sensor.range, colorHex, sensor.unit);
+
+            if (sensor.controls) modalControls.classList.remove('d-none');
+            else modalControls.classList.add('d-none');
+
+            modalOverlay.classList.remove('d-none');
+            setTimeout(() => { modalOverlay.classList.add('show'); }, 10);
+        }
+
+        function closeSensorModal() {
+            modalOverlay.classList.remove('show');
+            setTimeout(() => {
+                modalOverlay.classList.add('d-none');
+                if (modalChart) { modalChart.destroy(); modalChart = null; }
+            }, 300);
+        }
+
+        function renderModalChart(value, range, color, unit) {
+            const container = document.querySelector("#modal-sensor-chart");
+            container.innerHTML = '';
+            if (modalChart) modalChart.destroy();
+
+            let min = range ? range[0] : 0;
+            let max = range ? range[1] : 100;
+            let valNum = parseFloat(value);
+            if (isNaN(valNum)) valNum = 0;
+            let percent = ((valNum - min) / (max - min)) * 100;
+            if (percent < 0) percent = 0;
+            if (percent > 100) percent = 100;
+
+            var options = {
+                series: [percent],
+                chart: { height: 280, type: 'radialBar' },
+                plotOptions: {
+                    radialBar: {
+                        startAngle: -135, endAngle: 135,
+                        dataLabels: {
+                            name: { fontSize: '16px', offsetY: 120 },
+                            value: { offsetY: 76, fontSize: '22px', color: color, formatter: function (val) { return valNum + " " + unit; } }
+                        }
+                    }
+                },
+                fill: { colors: [color] },
+                stroke: { dashArray: 4 },
+                labels: ['Current Reading'],
+            };
+            modalChart = new ApexCharts(container, options);
+            modalChart.render();
+        }
+
+        document.getElementById('btn-close-modal').addEventListener('click', closeSensorModal);
+        modalOverlay.addEventListener('click', function (e) { if (e.target === modalOverlay) closeSensorModal(); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modalOverlay.classList.contains('show')) closeSensorModal(); });
+
+        // --- ORDERING LOGIC ---
+        const savedOrder = localStorage.getItem('shared-sensors');
+        let activeIds = savedOrder ? savedOrder.split('|') : allSensors.filter(s => s.default).map(s => s.id);
+
+        activeIds.forEach(id => {
+            const sensor = allSensors.find(s => s.id === id);
+            if (sensor) gridContainer.appendChild(createSensorBlock(sensor));
+        });
+        allSensors.forEach(sensor => {
+            if (!activeIds.includes(sensor.id)) libraryContainer.appendChild(createSensorBlock(sensor));
+        });
+
+        Sortable.create(gridContainer, {
+            group: 'shared-sensors', animation: 150, ghostClass: 'ghost-cls', handle: '.sensor-card-glass',
+            store: {
+                get: function (sortable) { return localStorage.getItem(sortable.options.group.name)?.split('|') || []; },
+                set: function (sortable) { localStorage.setItem(sortable.options.group.name, sortable.toArray().join('|')); }
+            }
+        });
+        Sortable.create(libraryContainer, { group: 'shared-sensors', animation: 150, ghostClass: 'ghost-cls', sort: false });
+
+        // --- LIVE DATA ---
+        function fetchLiveData() {
+            // We need selected_device.id from context if available, otherwise just use first logic or hardcode for now for demo
+            const deviceId = "{{ selected_device.id|default:'' }}";
+            if (!deviceId) return;
+
+            fetch(`/hydroponics/api/latest-data/${deviceId}/`)
+                .then(r => r.json())
+                .then(data => {
+                    // Transform raw data to formatted data for UI
+                    let formattedData = {};
+                    // Helper to get status
+                    const getStatus = (id, val) => {
+                        const sensor = allSensors.find(s => s.id === id);
+                        if (!sensor || !sensor.range) return { status: 'neutral', label: 'Normal' };
+                        if (val < sensor.range[0] || val > sensor.range[1]) return { status: 'warning', label: 'Warning' };
+                        return { status: 'success', label: 'Normal' };
+                    }
+
+                    for (const [key, val] of Object.entries(data)) {
+                        if (['device_id', 'timestamp'].includes(key)) continue;
+                        const st = getStatus(key, val);
+                        formattedData[key] = { value: val, status: st.status, label: st.label };
+                    }
+
+                    realData = formattedData;
+                    updateDashboard(formattedData);
+                });
+        }
+        function updateDashboard(data) {
+            document.querySelectorAll('.sensor-block').forEach(block => {
+                const sensorId = block.getAttribute('data-id');
+                const sensorData = data[sensorId];
+                if (sensorData) {
+                    const valueEl = block.querySelector('h3');
+                    const badgeEl = block.querySelector('.badge');
+                    const iconEl = block.querySelector('.sensor-icon-circle i');
+                    const cardEl = block.querySelector('.sensor-card-glass');
+
+                    let status = sensorData.status; let statusLabel = sensorData.label;
+                    const unitSpan = valueEl.querySelector('span').outerHTML;
+                    valueEl.innerHTML = `${sensorData.value} ${unitSpan}`;
+                    badgeEl.textContent = statusLabel;
+                    badgeEl.className = `badge ${status === 'neutral' ? 'bg-secondary' : 'bg-' + status} bg-opacity-75`;
+                    iconEl.className = `ti ${allSensors.find(s => s.id === sensorId).icon} text-${status}`;
+                    cardEl.className = cardEl.className.replace(/status-border-\w+/, `status-border-${status}`);
+
+                    const sensor = allSensors.find(s => s.id === sensorId);
+                    if (sensor) block.onclick = function () { openSensorModal(sensor, sensorData.value, status, statusLabel); };
+
+                    if (modalOverlay.classList.contains('show') && document.getElementById('modal-sensor-name').textContent === sensor.label) {
+                        document.getElementById('modal-sensor-value').textContent = sensorData.value;
+                        document.getElementById('modal-sensor-status-text').textContent = `Status: ${statusLabel}`;
+                        let colorHex = status === 'success' ? '#0acf97' : status === 'warning' ? '#ffbc00' : status === 'danger' ? '#fa5c7c' : '#727cf5';
+                        document.getElementById('modal-sensor-icon').style.color = colorHex;
+                        renderModalChart(sensorData.value, sensor.range, colorHex, sensor.unit);
+                    }
+                }
+            });
+        }
+        setInterval(fetchLiveData, 3000);
+
+        // --- CHART LOGIC ---
+        var tempsData = JSON.parse(document.getElementById('temps-data').textContent);
+        var datesData = JSON.parse(document.getElementById('dates-data').textContent);
+        var envOptions = {
+            chart: { type: 'area', height: 350, toolbar: { show: false } },
+            series: [{ name: 'Avg Temperature', data: tempsData }],
+            xaxis: { categories: datesData },
+            colors: ['#727cf5'],
+            fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.05, stops: [0, 100] } },
+            dataLabels: { enabled: false },
+            stroke: { curve: 'smooth', width: 2 },
+        };
+        new ApexCharts(document.querySelector("#environment-chart"), envOptions).render();
+
+        // --- MAP LOGIC ---
+        var mapData = JSON.parse(document.getElementById('map-data').textContent);
+        if (mapData.length > 0) {
+            var map = L.map('farm-map').setView([20.5937, 78.9629], 5);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+            mapData.forEach(function (device) {
+                L.marker([device.latitude, device.longitude]).addTo(map).bindPopup('<b>' + device.name + '</b><br>Status: ' + device.status);
+            });
+        }
+    });
+</script>
+{% endblock extra_javascript %}

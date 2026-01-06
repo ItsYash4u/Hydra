@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block html_attribute %}{% endblock html_attribute %}
+
+{% block title %}{% endblock title %}
+
+{% block extra_css %}{% endblock extra_css %}
+
+{% block body_attribute %}{% endblock body_attribute %}
+
+{% block content %}
+
+{% block preloader %}{% endblock preloader %}
+
+<div class="wrapper">
+
+    {% include 'partials/menu.html' %}
+
+    <div class="page-content">
+
+        <div class="page-container">
+
+            {% block page_title %}{% endblock page_title %}
+
+            {% block page_content %}{% endblock page_content %}
+
+            {% include 'partials/footer.html' %}
+        </div>
+    </div>
+</div>
+
+{% include 'partials/customizer.html' %}
+
+<!-- Logout Confirmation Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-body p-4 text-center">
+                <div class="mb-3">
+                    <i class="ti ti-logout text-danger display-4"></i>
+                </div>
+                <h4 class="mb-2">Sign Out?</h4>
+                <p class="text-muted mb-4">Are you sure you want to sign out of your account?</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <a href="{% url 'custom_logout' %}" class="btn btn-danger">Yes, Sign Out</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'partials/footer-scripts.html' %}
+
+
+
+{% endblock content %}
+
+{% block extra_javascript %}{% endblock extra_javascript %}

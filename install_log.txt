@@ -1,0 +1,15 @@
+Defaulting to user installation because normal site-packages is not writeable
+Requirement already satisfied: django-environ in c:\users\ayush\appdata\roaming\python\python314\site-packages (0.12.0)
+Requirement already satisfied: django-allauth in c:\users\ayush\appdata\roaming\python\python314\site-packages (65.13.1)
+Requirement already satisfied: argon2-cffi in c:\users\ayush\appdata\roaming\python\python314\site-packages (25.1.0)
+Requirement already satisfied: whitenoise in c:\users\ayush\appdata\roaming\python\python314\site-packages (6.11.0)
+Requirement already satisfied: Django>=4.2.16 in c:\users\ayush\appdata\roaming\python\python314\site-packages (from django-allauth) (5.2.8)
+Requirement already satisfied: asgiref>=3.8.1 in c:\users\ayush\appdata\roaming\python\python314\site-packages (from django-allauth) (3.11.0)
+Requirement already satisfied: argon2-cffi-bindings in c:\users\ayush\appdata\roaming\python\python314\site-packages (from argon2-cffi) (25.1.0)
+Requirement already satisfied: sqlparse>=0.3.1 in c:\users\ayush\appdata\roaming\python\python314\site-packages (from Django>=4.2.16->django-allauth) (0.5.4)
+Requirement already satisfied: tzdata in c:\users\ayush\appdata\roaming\python\python314\site-packages (from Django>=4.2.16->django-allauth) (2025.2)
+Requirement already satisfied: cffi>=2.0.0b1 in c:\users\ayush\appdata\roaming\python\python314\site-packages (from argon2-cffi-bindings->argon2-cffi) (2.0.0)
+Requirement already satisfied: pycparser in c:\users\ayush\appdata\roaming\python\python314\site-packages (from cffi>=2.0.0b1->argon2-cffi-bindings->argon2-cffi) (2.23)
+
+[notice] A new release of pip is available: 25.2 -> 25.3
+[notice] To update, run: python.exe -m pip install --upgrade pip

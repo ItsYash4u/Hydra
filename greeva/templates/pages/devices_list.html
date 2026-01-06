@@ -1,0 +1,71 @@
+{% extends 'vertical.html' %}
+{% load static %}
+{% block title %}All Devices{% endblock title %}
+
+{% block page_title %}
+{% include 'partials/page-title.html' with title="Registered Devices" %}
+{% endblock page_title %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="header-title">All Registered Devices</h4>
+                    <div class="d-flex gap-2">
+                        <input type="text" class="form-control form-control-sm" placeholder="Search devices...">
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Device Name</th>
+                                <th>Location</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for device in devices %}
+                            <tr>
+                                <td>
+                                    <h5 class="fs-14 my-1">{{ device.name }}</h5>
+                                    <span class="text-muted fs-12">{{ device.sensor_id }}</span>
+                                </td>
+                                <td>{{ device.location }}</td>
+                                <td>{{ device.get_device_type_display }}</td>
+                                <td>
+                                    {% if device.status == 'online' %}
+                                    <i class="ti ti-circle-filled fs-12 text-success"></i> Active
+                                    {% else %}
+                                    <i class="ti ti-circle-filled fs-12 text-danger"></i> Offline
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'pages:analytics' %}?device_id={{ device.id }}"
+                                        class="btn btn-sm btn-primary">
+                                        <i class="ti ti-chart-line me-1"></i>Analytics
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center p-3">No devices found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer clearfix">
+                <div class="text-muted float-start">Showing {{ devices|length }} devices</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock page_content %}

@@ -1,0 +1,5 @@
+usage: manage.py generate_data [-h] [--version] [-v {0,1,2,3}]
+                               [--settings SETTINGS] [--pythonpath PYTHONPATH]
+                               [--traceback] [--no-color] [--force-color]
+                               [--skip-checks]
+manage.py generate_data: error: unrecognized arguments: 

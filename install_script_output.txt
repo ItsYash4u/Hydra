@@ -1,0 +1,7 @@
+Collecting pymysql
+  Using cached pymysql-1.1.2-py3-none-any.whl.metadata (4.3 kB)
+Using cached pymysql-1.1.2-py3-none-any.whl (45 kB)
+Installing collected packages: pymysql
+Successfully installed pymysql-1.1.2
+Installing pymysql...
+Successfully installed pymysql

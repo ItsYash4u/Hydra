@@ -1,0 +1,23 @@
+{% extends 'vertical.html' %}
+
+{% load static i18n %}
+
+{% block title %}Dashboard{% endblock title %}
+
+{% block extra_css %}
+
+{% endblock extra_css %}
+
+{% block page_title %}
+{% include 'partials/page-title.html' with title="Dashboard" subtitle="Base UI" %}
+{% endblock page_title %}
+
+{% block page_content %}
+
+
+
+{% endblock page_content %}
+
+{% block extra_javascript %}
+
+{% endblock extra_javascript %}

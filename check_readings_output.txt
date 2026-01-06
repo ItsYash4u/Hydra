@@ -1,0 +1,3 @@
+Status Code: 200
+Response JSON:
+{'Electrical Conductivity (mS/cm)': {'value': 1.4, 'timestamp': '2025-12-04T06:45:39.465911Z', 'is_anomaly': False}, 'Humidity (%)': {'value': 77.54, 'timestamp': '2025-12-04T06:45:39.465911Z', 'is_anomaly': False}, 'Light Hours (hrs)': {'value': 13.28, 'timestamp': '2025-12-04T06:45:39.465911Z', 'is_anomaly': False}, 'Soil/Medium Moisture (%)': {'value': 57.34, 'timestamp': '2025-12-04T06:45:39.465911Z', 'is_anomaly': False}, 'pH Level': {'value': 5.55, 'timestamp': '2025-12-04T06:45:39.465911Z', 'is_anomaly': False}, 'Temperature (°C)': {'value': 21.91, 'timestamp': '2025-12-04T06:45:39.465911Z', 'is_anomaly': False}}

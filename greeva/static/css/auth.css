@@ -1,0 +1,75 @@
+/* Backdrop blur for modals */
+.modal-backdrop.show {
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    background-color: rgba(3, 14, 27, 0.7) !important;
+    opacity: 1 !important;
+}
+
+/* Modal Content Styling */
+.auth-modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transform: scale(0.9);
+    animation: popIn 0.3s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    to {
+        transform: scale(1);
+    }
+}
+
+/* Logo Animation */
+.auth-logo {
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+/* Button Pulse Animation when active */
+.btn-primary:not(:disabled) {
+    animation: pulse-blue 2s infinite;
+}
+
+@keyframes pulse-blue {
+    0% {
+        box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(13, 110, 253, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(13, 110, 253, 0);
+    }
+}
+
+/* Disabled button styling */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.auth-modal-content .form-label {
+    font-weight: 500;
+}
+
+.auth-modal-content .btn-primary {
+    padding: 10px;
+    font-weight: 600;
+}

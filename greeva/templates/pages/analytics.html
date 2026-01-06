@@ -1,0 +1,159 @@
+{% extends 'vertical.html' %}
+{% load static %}
+
+{% block title %}Analytics{% endblock title %}
+
+{% block page_title %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="page-title mb-0">Device Analytics</h4>
+        <p class="text-muted mb-0">Monitor and analyze device performance</p>
+    </div>
+    <button class="btn btn-primary" onclick="showAddDeviceModal()">
+        <i class="ti ti-plus me-1"></i>Add Device
+    </button>
+</div>
+{% endblock page_title %}
+
+
+{% block page_content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Select Device</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% for device in devices %}
+                    <a href="?device_id={{ device.id }}"
+                        class="list-group-item list-group-item-action {% if device.id == selected_device.id %}active{% endif %}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ device.device_id }}</h5>
+                        </div>
+                        <small>{% if device.id == selected_device.id %}Selected{% endif %}</small>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        {% if selected_device %}
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="header-title">Real-Time Sensor Trends: {{ selected_device.device_id }}</h4>
+                            <span class="badge bg-success">Online</span>
+                        </div>
+                        <div id="analytics-chart" class="apex-charts" dir="ltr"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xl-4 col-md-6">
+                <div class="card border-primary border-bottom border-3">
+                    <div class="card-body">
+                        <h5 class="text-muted text-uppercase mt-0">Water Quality</h5>
+                        <h2 class="my-3" id="val-ph">pH: --</h2>
+                        <h2 class="my-3" id="val-ec">EC: --</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-4 col-md-6">
+                <div class="card border-warning border-bottom border-3">
+                    <div class="card-body">
+                        <h5 class="text-muted text-uppercase mt-0">Environment</h5>
+                        <h2 class="my-3" id="val-temp">Temp: -- °C</h2>
+                        <h2 class="my-3" id="val-humidity">Hum: -- %</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-4 col-md-6">
+                <div class="card border-success border-bottom border-3">
+                    <div class="card-body">
+                        <h5 class="text-muted text-uppercase mt-0">Nutrients</h5>
+                        <h3 class="my-2" id="val-npk">NPK: -- / -- / --</h3>
+                        <small class="text-muted">mg/L</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">No devices found.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock page_content %}
+
+{% block extra_javascript %}
+<!-- Dashboard Interactions (for Add Device modal) -->
+<script src="{% static 'js/dashboard-interactions.js' %}"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const deviceId = "{{ selected_device.id|default:'' }}";
+
+        var options = {
+            series: [{
+                name: "Temperature",
+                data: []
+            },
+            {
+                name: "pH",
+                data: []
+            }],
+            chart: {
+                height: 350,
+                type: 'line',
+                animations: {
+                    enabled: true,
+                    easing: 'linear',
+                    dynamicAnimation: {
+                        speed: 1000
+                    }
+                },
+                toolbar: { show: false }
+            },
+            stroke: { curve: 'smooth' },
+            colors: ['#727cf5', '#0acf97'],
+            xaxis: {
+                type: 'datetime',
+                range: 60000 // 1 minute window
+            }
+        };
+
+        var chart = new ApexCharts(document.querySelector("#analytics-chart"), options);
+        chart.render();
+
+        function updateData() {
+            if (!deviceId) return;
+
+            fetch(`/hydroponics/api/latest-data/${deviceId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    const now = new Date().getTime();
+
+                    // Update DOM
+                    if (data.ph) document.getElementById('val-ph').innerText = `pH: ${data.ph}`;
+                    if (data.ec) document.getElementById('val-ec').innerText = `EC: ${data.ec}`;
+                    if (data.temperature) document.getElementById('val-temp').innerText = `Temp: ${data.temperature} °C`;
+                    if (data.humidity) document.getElementById('val-humidity').innerText = `Hum: ${data.humidity} %`;
+                    if (data.nitrogen) document.getElementById('val-npk').innerText = `NPK: ${data.nitrogen} / ${data.phosphorus} / ${data.potassium}`;
+
+                    // Update Chart
+                    // In a real app we'd append to the series correctly
+                });
+        }
+
+        setInterval(updateData, 2000);
+        updateData();
+    });
+</script>
+{% endblock extra_javascript %}

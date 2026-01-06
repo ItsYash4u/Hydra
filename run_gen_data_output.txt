@@ -1,0 +1,37 @@
+Generating sample data...
+Traceback (most recent call last):
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\db\models\query.py", line 948, in get_or_create
+    return self.get(**kwargs), False
+           ^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+greeva.users.models.User.DoesNotExist: User matching query does not exist.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\manage.py", line 34, in <module>
+    execute_from_command_line(sys.argv)
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\management\__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\management\__init__.py", line 436, in execute
+    self.fetch_command(subcommand).run_from_argv(self.argv)
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\management\base.py", line 413, in run_from_argv
+    self.execute(*args, **cmd_options)
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\core\management\base.py", line 459, in execute
+    output = self.handle(*args, **options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\greeva\hydroponics\management\commands\generate_data.py", line 20, in handle
+    admin_user, _ = User.objects.get_or_create(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\db\models\query.py", line 950, in get_or_create
+    params = self._extract_model_params(defaults, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\AYUSH\Downloads\admin\Greeva\.venv312\Lib\site-packages\django\db\models\query.py", line 1039, in _extract_model_params
+    raise exceptions.FieldError(
+django.core.exceptions.FieldError: Invalid field name(s) for model User: 'username'.
+Running generate_data...
+Failed to generate data: Command '['c:\\Users\\AYUSH\\Downloads\\admin\\Greeva\\.venv312\\Scripts\\python.exe', 'manage.py', 'generate_data']' returned non-zero exit status 1.

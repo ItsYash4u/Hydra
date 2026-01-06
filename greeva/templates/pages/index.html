@@ -1,0 +1,570 @@
+{% extends 'vertical.html' %}
+
+{% load static %}
+
+{% block title %}Dashboard{% endblock title %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/jsvectormap/dist/css/jsvectormap.min.css" rel="stylesheet" type="text/css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+<style>
+    .sensor-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+    }
+
+    .sensor-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2) !important;
+        z-index: 10;
+    }
+
+    .sensor-icon-wrapper {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: rgba(var(--ct-primary-rgb), 0.1);
+        color: var(--ct-primary);
+    }
+
+    .cursor-grab {
+        cursor: grab;
+    }
+
+    .cursor-grabbing {
+        cursor: grabbing;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block page_title %}
+{% include 'partials/page-title.html' with title="Dashboard" %}
+{% endblock page_title %}
+
+{% block page_content %}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body d-flex align-items-center gap-3">
+                <span
+                    class="avatar-title text-bg-success rounded-circle d-flex align-items-center justify-content-center"
+                    style="width: 48px; height: 48px;">
+                    <i class="ti ti-leaf fs-3"></i>
+                </span>
+
+                <div>
+                    <h3 class="mb-0 fw-bold">Smart IoT</h3>
+                    <p class="mb-0 text-muted" id="live-sensor-header">
+                        {% if first_device %}
+                        Live Sensor Data (Device ID: <span id="active-device-id">{{ first_device.id }}</span>)
+                        {% else %}
+                        Real-time monitoring system
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="ms-auto d-flex gap-3">
+                    <div class="text-end">
+                        <h4 class="mb-0">{{ total_devices }}</h4>
+                        <p class="mb-0 text-muted">Total Devices</p>
+                    </div>
+                    <div class="text-end">
+                        <h4 class="mb-0 text-success">{{ online_devices }}</h4>
+                        <p class="mb-0 text-muted">Online</p>
+                    </div>
+                    <div class="text-end">
+                        <h4 class="mb-0 text-danger">{{ offline_devices }}</h4>
+                        <p class="mb-0 text-muted">Offline</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Live Sensor Data (First Device) -->
+    <div class="col-xl-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="header-title mb-1">Live Sensor Monitor</h4>
+                    <p class="text-muted mb-0">Track your device live sensor data.</p>
+                </div>
+            </div>
+            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#customizeSensorsModal">
+                <i class="ti ti-settings me-1"></i>Customize / Add Sensors
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="row g-3" id="sensor-grid">
+                {% for sensor_type, reading in latest_readings.items %}
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 sensor-col {% if forloop.counter > 8 %}d-none{% endif %}"
+                    data-sensor-type="{{ sensor_type }}">
+                    <div class="card mb-0 sensor-card h-100 cursor-grab" data-sensor-card
+                        data-sensor-type="{% if 'Temperature' in sensor_type %}temperature{% elif 'Humidity' in sensor_type %}humidity{% elif 'pH' in sensor_type %}ph{% elif 'Moisture' in sensor_type %}moisture{% elif 'Light' in sensor_type %}light_hours{% elif 'Nitrogen' in sensor_type %}nitrogen{% elif 'Phosphorus' in sensor_type %}phosphorus{% elif 'Potassium' in sensor_type %}potassium{% elif 'EC' in sensor_type %}ec{% elif 'Oxygen' in sensor_type %}dissolved_oxygen{% elif 'TDS' in sensor_type %}tds{% elif 'ORP' in sensor_type %}orp{% elif 'CO2' in sensor_type %}co2{% elif 'Level' in sensor_type %}water_level{% elif 'Flow' in sensor_type %}flow_rate{% elif 'Water Temp' in sensor_type %}water_temp{% else %}other{% endif %}"
+                        data-sensor-name="{{ sensor_type }}" data-sensor-value="{{ reading.value }}"
+                        onclick="openSensorDetail(this)">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="sensor-icon-wrapper">
+                                    {% if 'Temperature' in sensor_type %}<i class="ti ti-thermometer fs-2"></i>
+                                    {% elif 'Humidity' in sensor_type %}<i class="ti ti-droplet fs-2"></i>
+                                    {% elif 'pH' in sensor_type %}<i class="ti ti-flask fs-2"></i>
+                                    {% elif 'Moisture' in sensor_type %}<i class="ti ti-cloud-rain fs-2"></i>
+                                    {% elif 'Light' in sensor_type %}<i class="ti ti-sun fs-2"></i>
+                                    {% elif 'Nitrogen' in sensor_type or 'Phosphorus' in sensor_type or 'Potassium' in
+                                    sensor_type %}<i class="ti ti-atom-2 fs-2"></i>
+                                    {% elif 'EC' in sensor_type or 'TDS' in sensor_type %}<i
+                                        class="ti ti-grain fs-2"></i>
+                                    {% elif 'Oxygen' in sensor_type %}<i class="ti ti-droplet-filled fs-2"></i>
+                                    {% elif 'ORP' in sensor_type %}<i class="ti ti-bolt fs-2"></i>
+                                    {% elif 'CO2' in sensor_type %}<i class="ti ti-cloud fs-2"></i>
+                                    {% elif 'Water Level' in sensor_type %}<i class="ti ti-wave-sine fs-2"></i>
+                                    {% elif 'Flow Rate' in sensor_type %}<i class="ti ti-activity-heartbeat fs-2"></i>
+                                    {% else %}<i class="ti ti-activity fs-2"></i>{% endif %}
+                                </div>
+                                <span class="badge bg-success-subtle text-success">Active</span>
+                            </div>
+                            <h5 class="text-muted text-uppercase fs-13 mt-2">{{ sensor_type }}</h5>
+                            <h2 class="mb-0 mt-1 fw-bold">
+                                <span class="sensor-value">{{ reading.value|floatformat:1 }}</span>
+                                <small class="fs-16 text-muted fw-normal">
+                                    {% if 'Temperature' in sensor_type or 'Temp' in sensor_type %}°C{% elif 'Humidity'
+                                    in sensor_type %}%{% elif
+                                    'pH' in sensor_type %}pH{% elif 'Moisture' in sensor_type %}%{% elif 'Light' in
+                                    sensor_type %}hrs{% elif 'EC' in sensor_type %}mS/cm{% elif 'Oxygen' in sensor_type
+                                    %}mg/L{% elif 'TDS' in sensor_type %}ppm{% elif 'ORP' in sensor_type %}mV{% elif
+                                    'CO2' in sensor_type %}ppm{% elif 'Level' in sensor_type %}%{% elif 'Flow' in
+                                    sensor_type %}L/h{% else %}units{% endif %}
+                                </small>
+                            </h2>
+                            <div class="mt-2 d-flex align-items-center justify-content-between">
+                                <small class="text-muted">Last updated: <span class="sensor-time">Just
+                                        now</span></small>
+                                <i class="ti ti-chart-dots text-primary fs-4" title="View History"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center text-muted">No sensor readings available</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<div class="row">
+    <!-- Device List -->
+    <div class="col-xl-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="header-title">Registered Devices</h4>
+                <a href="{% url 'pages:devices_list' %}" class="btn btn-sm btn-outline-primary">
+                    View All Devices
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Device Name</th>
+                                <th>Location</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for device in devices|slice:":5" %}
+                            <tr class="device-row" data-device-id="{{ device.id }}" data-device-name="{{ device.name }}"
+                                style="cursor: pointer;">
+                                <td>
+                                    <h5 class="fs-14 my-1">{{ device.name }}</h5>
+                                    <span class="text-muted fs-12">{{ device.sensor_id }}</span>
+                                </td>
+                                <td>{{ device.location }}</td>
+                                <td>{{ device.get_device_type_display }}</td>
+                                <td>
+                                    {% if device.status == 'online' %}
+                                    <i class="ti ti-circle-filled fs-12 text-success"></i> Active
+                                    {% else %}
+                                    <i class="ti ti-circle-filled fs-12 text-danger"></i> Offline
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'pages:analytics' %}?device_id={{ device.id }}"
+                                        class="btn btn-sm btn-primary">
+                                        <i class="ti ti-chart-line me-1"></i>View Analytics
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Active Alerts Table -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card card-soft">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center mb-2">
+                    <h5 class="mb-0 fw-bold">Active Alerts</h5>
+                    <small class="text-muted ms-3">Recent system notifications</small>
+                    <i class="ti ti-alert-triangle ms-auto text-danger p-2 rounded-circle" style="font-size:18px;"></i>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-borderless table-dense mb-0">
+                        <thead>
+                            <tr class="text-muted small">
+                                <th scope="col">Device</th>
+                                <th scope="col">Message</th>
+                                <th scope="col">Severity</th>
+                                <th scope="col">Timestamp</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for alert in recent_alerts %}
+                            <tr class="align-middle">
+                                <td><strong>{{ alert.rule.device.name }}</strong></td>
+                                <td>{{ alert.message }}</td>
+                                <td>
+                                    {% if alert.rule.severity == 'critical' %}
+                                    <span class="badge bg-danger">Critical</span>
+                                    {% elif alert.rule.severity == 'warning' %}
+                                    <span class="badge bg-warning text-dark">Warning</span>
+                                    {% else %}
+                                    <span class="badge bg-info">Info</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ alert.triggered_at|date:"Y-m-d H:i" }}</td>
+                                <td><span class="badge bg-primary">{{ alert.status|title }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">No active alerts</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Multi-Device Selector -->
+
+
+
+
+<!-- Environment Trends & Device Health -->
+<div class="row">
+    <!-- Environment Trends (7 Days) -->
+    <div class="col-xl-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="header-title mb-0">Environment Trends (7 Days)</h4>
+                <p class="text-muted mb-0">Weather data based on device location</p>
+            </div>
+            <div class="card-body">
+                <div id="environment-trends-chart" style="height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Device Health -->
+    <div class="col-xl-4">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="header-title mb-0">Device Health</h4>
+                <p class="text-muted mb-0">Overall system status</p>
+            </div>
+            <div class="card-body">
+                <div id="device-health-chart" style="height: 300px;"></div>
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-success me-2"
+                                style="width: 12px; height: 12px; border-radius: 50%;"></span>
+                            <span>Online</span>
+                        </div>
+                        <strong id="health-online">{{ online_devices }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-danger me-2"
+                                style="width: 12px; height: 12px; border-radius: 50%;"></span>
+                            <span>Offline</span>
+                        </div>
+                        <strong id="health-offline">{{ offline_devices }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-warning me-2"
+                                style="width: 12px; height: 12px; border-radius: 50%;"></span>
+                            <span>Maintenance</span>
+                        </div>
+                        <strong id="health-maintenance">0</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-info me-2"
+                                style="width: 12px; height: 12px; border-radius: 50%;"></span>
+                            <span>Faulty</span>
+                        </div>
+                        <strong id="health-faulty">0</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Farm Locations (Map Preview) -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="header-title mb-0">Farm Locations</h4>
+                    <p class="text-muted mb-0">Geographic distribution of your devices</p>
+                </div>
+                <a href="{% url 'pages:map' %}" class="btn btn-sm btn-primary">
+                    <i class="ti ti-external-link me-1"></i>View Full Map
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div id="farm-locations-map" style="height: 400px; width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div> <!-- end row-->
+
+
+
+<!-- Customize Sensors Modal -->
+<div class="modal fade" id="customizeSensorsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Customize Sensor Display</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small">Select the sensors you want to see on your dashboard.</p>
+                <div class="row g-2" id="sensor-toggles">
+                    <!-- Standard Sensors -->
+                    <div class="col-6">
+                        <div class="form-check form-switch card p-2 mb-0"><input class="form-check-input ms-0 me-2"
+                                type="checkbox" id="check-temperature" checked
+                                onchange="toggleSensor('Temperature')"><label
+                                class="form-check-label fw-medium stretched-link"
+                                for="check-temperature">Temperature</label></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check form-switch card p-2 mb-0"><input class="form-check-input ms-0 me-2"
+                                type="checkbox" id="check-humidity" checked onchange="toggleSensor('Humidity')"><label
+                                class="form-check-label fw-medium stretched-link" for="check-humidity">Humidity</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check form-switch card p-2 mb-0"><input class="form-check-input ms-0 me-2"
+                                type="checkbox" id="check-ph" checked onchange="toggleSensor('pH')"><label
+                                class="form-check-label fw-medium stretched-link" for="check-ph">pH Level</label></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check form-switch card p-2 mb-0"><input class="form-check-input ms-0 me-2"
+                                type="checkbox" id="check-ec" checked onchange="toggleSensor('EC')"><label
+                                class="form-check-label fw-medium stretched-link" for="check-ec">EC</label></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check form-switch card p-2 mb-0"><input class="form-check-input ms-0 me-2"
+                                type="checkbox" id="check-light" checked onchange="toggleSensor('Light')"><label
+                                class="form-check-label fw-medium stretched-link" for="check-light">Light</label></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check form-switch card p-2 mb-0"><input class="form-check-input ms-0 me-2"
+                                type="checkbox" id="check-moisture" checked onchange="toggleSensor('Moisture')"><label
+                                class="form-check-label fw-medium stretched-link" for="check-moisture">Moisture</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check form-switch card p-2 mb-0"><input class="form-check-input ms-0 me-2"
+                                type="checkbox" id="check-nitrogen" checked onchange="toggleSensor('Nitrogen')"><label
+                                class="form-check-label fw-medium stretched-link" for="check-nitrogen">Nitrogen</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check form-switch card p-2 mb-0"><input class="form-check-input ms-0 me-2"
+                                type="checkbox" id="check-phosphorus" checked
+                                onchange="toggleSensor('Phosphorus')"><label
+                                class="form-check-label fw-medium stretched-link"
+                                for="check-phosphorus">Phosphorus</label>
+                        </div>
+                    </div>
+
+                    <!-- Additional / Advanced Sensors (Default Unchecked if > 8) -->
+                    <div class="col-6">
+                        <div class="form-check form-switch card p-2 mb-0"><input class="form-check-input ms-0 me-2"
+                                type="checkbox" id="check-potassium" onchange="toggleSensor('Potassium')"><label
+                                class="form-check-label fw-medium stretched-link"
+                                for="check-potassium">Potassium</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check form-switch card p-2 mb-0"><input class="form-check-input ms-0 me-2"
+                                type="checkbox" id="check-water-temp" onchange="toggleSensor('Water Temp')"><label
+                                class="form-check-label fw-medium stretched-link" for="check-water-temp">Water
+                                Temp</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check form-switch card p-2 mb-0"><input class="form-check-input ms-0 me-2"
+                                type="checkbox" id="check-dissolved-oxygen"
+                                onchange="toggleSensor('Dissolved Oxygen')"><label
+                                class="form-check-label fw-medium stretched-link" for="check-dissolved-oxygen">Dissolved
+                                Oxygen</label></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check form-switch card p-2 mb-0"><input class="form-check-input ms-0 me-2"
+                                type="checkbox" id="check-tds" onchange="toggleSensor('TDS')"><label
+                                class="form-check-label fw-medium stretched-link" for="check-tds">TDS</label></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check form-switch card p-2 mb-0"><input class="form-check-input ms-0 me-2"
+                                type="checkbox" id="check-orp" onchange="toggleSensor('ORP')"><label
+                                class="form-check-label fw-medium stretched-link" for="check-orp">ORP</label></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check form-switch card p-2 mb-0"><input class="form-check-input ms-0 me-2"
+                                type="checkbox" id="check-co2" onchange="toggleSensor('CO2')"><label
+                                class="form-check-label fw-medium stretched-link" for="check-co2">CO2</label></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check form-switch card p-2 mb-0"><input class="form-check-input ms-0 me-2"
+                                type="checkbox" id="check-water-level" onchange="toggleSensor('Water Level')"><label
+                                class="form-check-label fw-medium stretched-link" for="check-water-level">Water
+                                Level</label></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check form-switch card p-2 mb-0"><input class="form-check-input ms-0 me-2"
+                                type="checkbox" id="check-flow-rate" onchange="toggleSensor('Flow Rate')"><label
+                                class="form-check-label fw-medium stretched-link" for="check-flow-rate">Flow
+                                Rate</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary w-100" data-bs-dismiss="modal">Save Preferences</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sensor Detail Modal -->
+<div class="modal fade" id="sensorDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold" id="detail-sensor-name">Sensor Name</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <div class="text-center py-4">
+                    <div class="display-3 fw-bold text-primary mb-1" id="detail-sensor-value">0.0</div>
+                    <div class="text-muted" id="detail-sensor-unit">units</div>
+                </div>
+                <!-- Mini Chart Container -->
+                <div id="sensor-mini-chart" style="height: 150px;"></div>
+
+                <div class="row g-2 mt-3 text-center">
+                    <div class="col-4">
+                        <div class="p-2 border rounded bg-light">
+                            <small class="text-muted d-block">Min (24h)</small>
+                            <strong id="detail-min">--</strong>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 border rounded bg-light">
+                            <small class="text-muted d-block">Avg (24h)</small>
+                            <strong id="detail-avg">--</strong>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 border rounded bg-light">
+                            <small class="text-muted d-block">Max (24h)</small>
+                            <strong id="detail-max">--</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock page_content %}
+
+{% block extra_javascript %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap/dist/maps/world-merc.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap/dist/maps/world.js"></script>
+
+<!-- Projects Analytics Dashboard App js -->
+<script src="{% static '/js/pages/dashboard.js' %}"></script>
+
+<!-- Dashboard Interactions (Sensor Popups, Add Device, etc.) -->
+<script src="{% static 'js/dashboard-interactions.js' %}"></script>
+
+<!-- Multi-Device Selector -->
+<script src="{% static 'js/dashboard-device-selector.js' %}"></script>
+
+<!-- Leaflet for Map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script id="dashboard-context" type="application/json">
+    {
+        "online_devices": {{ online_devices|default:0 }},
+        "offline_devices": {{ offline_devices|default:0 }},
+        "total_devices": {{ total_devices|default:0 }},
+        "devices": [
+            {% for device in devices %}
+            {
+                "id": "{{ device.id }}",
+                "name": "{{ device.name }}",
+                "status": "{{ device.status }}"
+            }{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        ],
+        "user": {
+            "name": "{{ request.user.name|default:request.user.email }}",
+            "email": "{{ request.user.email }}",
+            "role": "{{ request.user.role }}"
+        }
+    }
+</script>
+
+<!-- Dashboard Initialization (Charts, Map) -->
+<script src="{% static 'js/dashboard-init.js' %}"></script>
+
+{% endblock extra_javascript %}

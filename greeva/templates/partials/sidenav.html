@@ -1,0 +1,75 @@
+{% load static i18n %}
+<!-- Sidenav Menu Start -->
+<div class="sidenav-menu">
+
+    <!-- Brand Logo
+    <a href="{% url 'hydroponics:dashboard' %}" class="logo">
+        <span class="logo-light">
+            <span class="logo-lg"><img src="{% static '/images/logo.png' %}" alt="logo"></span>
+            <span class="logo-sm"><img src="{% static '/images/logo-sm.png' %}" alt="small logo"></span>
+        </span>
+
+        <span class="logo-dark">
+            <span class="logo-lg"><img src="{% static '/images/logo-dark.png' %}" alt="dark logo"></span>
+            <span class="logo-sm"><img src="{% static '/images/logo-sm.png' %}" alt="small logo"></span>
+        </span>
+    </a> -->
+    <style>
+        .logo-text {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            /* Light mode */
+        }
+    </style>
+
+    <a href="{% url 'hydroponics:dashboard' %}" class="logo d-flex align-items-center" style="text-decoration: none;">
+
+        <img src="{% static 'images/logo.png' %}" alt="logo" class="me-2" style="height: 40px;">
+
+        <span class="logo-text">IOT</span>
+    </a>
+
+    <!-- Sidebar Hover Menu Toggle Button -->
+    <button class="button-sm-hover">
+        <i class="ti ti-circle align-middle"></i>e
+    </button>
+
+    <!-- Full Sidebar Menu Close Button -->
+    <button class="button-close-fullsidebar">
+        <i class="ti ti-x align-middle"></i>
+    </button>
+
+    <div data-simplebar>
+
+        <!--- Sidenav Menu -->
+        <ul class="side-nav">
+            <li class="side-nav-title">Navigation</li>
+
+            <li class="side-nav-item">
+                <a href="{% url 'hydroponics:dashboard' %}" class="side-nav-link">
+                    <span class="menu-icon"><i class="ti ti-dashboard"></i></span>
+                    <span class="menu-text"> Dashboard </span>
+                </a>
+            </li>
+            <li class="side-nav-item">
+                <a href="{% url 'pages:analytics' %}" class="side-nav-link">
+                    <span class="menu-icon"><i class="ti ti-chart-line"></i></span>
+                    <span class="menu-text"> Analytics </span>
+                </a>
+            </li>
+            <li class="side-nav-item">
+                <a href="{% url 'pages:map' %}" class="side-nav-link">
+                    <span class="menu-icon"><i class="ti ti-map-pin"></i></span>
+                    <span class="menu-text"> Map </span>
+                </a>
+            </li>
+
+
+
+
+
+            <div class="clearfix"></div>
+    </div>
+</div>
+<!-- Sidenav Menu End -->

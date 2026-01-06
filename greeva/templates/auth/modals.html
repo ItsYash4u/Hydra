@@ -1,0 +1,164 @@
+{% load static %}
+<!-- Login Modal -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content auth-modal-content">
+            <div class="modal-body p-4">
+                <div class="text-center mb-4">
+                    <img src="{% static 'images/logo-dark.png' %}" alt="IIT Guwahati" height="60"
+                        class="mb-2 auth-logo">
+                    <h4 class="text-primary mt-2">IIT Guwahati</h4>
+                    <p class="text-muted mt-3 mb-0">Log in to your account</p>
+                </div>
+
+                <form id="loginForm" autocomplete="on">
+                    <div class="mb-3">
+                        <label for="loginEmail" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="loginEmail" name="email" autocomplete="email"
+                            placeholder="Enter your email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="loginPassword" class="form-label">Password</label>
+                        <div class="input-group input-group-merge">
+                            <input type="password" id="loginPassword" class="form-control" name="password"
+                                autocomplete="current-password" placeholder="Enter your password" required>
+                            <div class="input-group-text" data-password="false">
+                                <span class="password-eye"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="checkbox-signin">
+                            <label class="form-check-label" for="checkbox-signin">Remember me</label>
+                        </div>
+                        <a href="#" class="text-muted font-12">Forgot Password</a>
+                    </div>
+                    <div class="d-grid mb-0 text-center">
+                        <button class="btn btn-primary" type="submit" id="loginBtn" disabled>Login</button>
+                    </div>
+                </form>
+                <div class="text-center mt-3">
+                    <p class="text-muted font-13">Don't have an account? <a href="#" class="text-primary fw-bold ms-1"
+                            data-bs-toggle="modal" data-bs-target="#signupModal">Sign Up!</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Signup Modal -->
+<div class="modal fade" id="signupModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content auth-modal-content">
+            <div class="modal-body p-4">
+                <div class="text-center mb-4">
+                    <img src="{% static 'images/logo-dark.png' %}" alt="IIT Guwahati" height="60"
+                        class="mb-2 auth-logo">
+                    <h4 class="text-primary mt-2">IIT Guwahati</h4>
+                    <p class="text-muted mt-3 mb-0">Sign Up</p>
+                </div>
+
+                <form id="signupForm" autocomplete="on">
+                    <div class="mb-3">
+                        <label for="signupName" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="signupName" name="name" autocomplete="name"
+                            placeholder="Enter your name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="signupEmail" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="signupEmail" name="email" autocomplete="email"
+                            placeholder="Enter your email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="signupUserType" class="form-label">Type of User</label>
+                        <select class="form-select" id="signupUserType" name="user_type" required>
+                            <option selected disabled value="">Select User Type</option>
+                            <option value="researcher">Researcher</option>
+                            <option value="admin">Admin</option>
+                            <option value="student">Student</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="signupPassword" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="signupPassword" name="password"
+                            autocomplete="new-password" placeholder="Enter your password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="signupConfirmPassword" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="signupConfirmPassword" name="confirm_password"
+                            autocomplete="new-password" placeholder="Confirm your password" required>
+                        <div id="passwordError" class="invalid-feedback" style="display:none;">Passwords do not match
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="termCondition" required>
+                            <label class="form-check-label" for="termCondition">I agree to all <a href="#"
+                                    class="text-dark">Terms & Condition</a></label>
+                        </div>
+                    </div>
+
+                    <div class="d-grid mb-0 text-center">
+                        <button class="btn btn-primary" type="submit" id="signupBtn" disabled>Sign Up</button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-3">
+                    <p class="text-muted font-13">Already have an account? <a href="#" class="text-danger fw-bold ms-1"
+                            data-bs-toggle="modal" data-bs-target="#loginModal">Login !</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- OTP Modal -->
+<div class="modal fade" id="otpModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
+    data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content auth-modal-content">
+            <div class="modal-body p-4 text-center">
+                <h4 class="mt-2">Verify OTP</h4>
+                <p class="text-muted mb-4">Code sent to <span id="otpEmailSpan" class="fw-bold"></span></p>
+
+                <form id="otpForm">
+                    <div class="mb-3">
+                        <input type="text" class="form-control form-control-lg text-center" id="otpInput" name="otp"
+                            maxlength="6" autocomplete="one-time-code" placeholder="______"
+                            style="letter-spacing: 10px; font-size: 24px;" required>
+                    </div>
+                    <div class="d-grid mb-3">
+                        <button class="btn btn-primary" type="submit">Verify</button>
+                    </div>
+                </form>
+
+                <p class="text-muted">Resend OTP in <span id="otpTimer" class="fw-bold text-dark">02:00</span></p>
+                <a href="#" id="resendLink" class="text-muted disabled" style="pointer-events: none;">Resend OTP</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sign Out Modal -->
+<div class="modal fade" id="signOutModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content auth-modal-content">
+            <div class="modal-body p-4 text-center">
+                <div class="text-center mb-4">
+                    <img src="{% static 'images/logo-dark.png' %}" alt="Logo" height="60" class="mb-2 auth-logo">
+                    <h4 class="text-primary mt-2">Sign Out</h4>
+                </div>
+                <p class="text-muted mb-4 fs-5">Are you sure you want to sign out?</p>
+
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-light w-50" data-bs-dismiss="modal">Cancel</button>
+                    <form method="post" action="{% url 'custom_logout' %}" class="w-50">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger w-100">Sign Out</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

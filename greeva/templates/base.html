@@ -1,0 +1,61 @@
+{% load static i18n %}
+<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE }}" data-bs-theme="{{ request.user.theme_preference|default:'light' }}"
+  data-layout-mode="fluid" data-layout-position="fixed" data-topbar-color="dark" data-sidenav-size="default">
+
+<head>
+  <meta charset="utf-8" />
+  <title>{% block title %}{% endblock title %} | Greeva - Responsive Bootstrap 5 Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
+  <meta content="Coderthemes" name="author" />
+
+  <!-- App favicon -->
+  <link rel="icon" href="{% static 'images/favicon.ico' %}" />
+
+  {% block css %}
+
+  {% block extra_css %}{% endblock extra_css %}
+
+  <script src="{% static 'js/config.js' %}"></script>
+
+  <link href="{% static 'css/app.min.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/auth.css' %}" rel="stylesheet" />
+
+  <link href="{% static 'css/icons.min.css' %}" rel="stylesheet" />
+
+  {% endblock css %}
+
+</head>
+
+<body {% block body_attribute %}{% endblock body_attribute %}>
+
+  {% block content %}
+
+  {% endblock content %}
+
+  {% block modal %}
+  {% include "auth/modals.html" %}
+  {% endblock modal %}
+
+  {% block extra_javascript %}{% endblock extra_javascript %}
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- jQuery (required by app.js) -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <!-- Bootstrap 5 Bundle (REQUIRED) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- App JS (uses bootstrap + $) -->
+  <script src="{% static 'js/app.js' %}"></script>
+
+  <!-- Auth JS -->
+  <script src="{% static 'js/auth.js' %}"></script>
+
+</body>
+
+</html>

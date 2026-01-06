@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Smart IoT - Hydroponics{% endblock title %}
+
+{% block content %}
+<div class="landing-bg d-flex min-vh-100 flex-column">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-transparent py-3">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+                <span class="avatar-title text-bg-success rounded-circle fs-3 p-1">
+                    <i class="ti ti-leaf"></i>
+                </span>
+                <span class="fs-3 fw-bold text-dark">Smart IoT</span>
+            </a>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary fw-semibold" data-bs-toggle="modal"
+                    data-bs-target="#loginModal">Log In</button>
+                <button class="btn btn-primary fw-semibold" data-bs-toggle="modal" data-bs-target="#signupModal">Sign
+                    Up</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="container flex-grow-1 d-flex align-items-center">
+        <div class="row align-items-center w-100">
+            <div class="col-lg-6">
+                <h1 class="display-3 fw-bold mb-4">Revolutionizing <span class="text-success">Hydroponics</span></h1>
+                <p class="lead text-muted mb-5">
+                    Monitor, analyze, and optimize your hydroponic systems with our advanced IoT solution.
+                    Real-time data, smart insights, and seamless control at your fingertips.
+                </p>
+                <div class="d-flex gap-3">
+                    <button class="btn btn-success btn-lg px-4" data-bs-toggle="modal" data-bs-target="#signupModal">Get
+                        Started</button>
+                    <a href="#features" class="btn btn-link btn-lg text-decoration-none text-muted">Learn More <i
+                            class="ti ti-arrow-down"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <img src="{% static 'images/landing_hero.png' %}" alt="Hydroponics Illustration" class="img-fluid"
+                    style="max-height: 500px;"
+                    onerror="this.src='https://via.placeholder.com/600x400?text=Hydroponics+IoT'">
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="bg-light py-5" id="features">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="fw-bold">Why Smart IoT?</h2>
+                    <p class="text-muted">Empowering growers with precision technology.</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm p-4 text-center">
+                        <div class="mb-3 text-success">
+                            <i class="ti ti-activity-heartbeat fs-1"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Real-time Monitoring</h4>
+                        <p class="text-muted">Keep track of pH, EC, Temperature and more live from your dashboard.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm p-4 text-center">
+                        <div class="mb-3 text-primary">
+                            <i class="ti ti-chart-dots fs-1"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Data Analytics</h4>
+                        <p class="text-muted">Visualize trends and historical data to make informed decisions.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm p-4 text-center">
+                        <div class="mb-3 text-warning">
+                            <i class="ti ti-bell-ringing fs-1"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Instant Alerts</h4>
+                        <p class="text-muted">Get notified immediately when your system needs attention.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works Section -->
+    <div class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="fw-bold">How It Works</h2>
+                    <p class="text-muted">Simple steps to smart farming.</p>
+                </div>
+            </div>
+            <div class="row align-items-center">
+                <div class="col-md-6 order-md-2">
+                    <img src="https://via.placeholder.com/600x400?text=IoT+Device+Setup"
+                        class="img-fluid rounded shadow" alt="Setup">
+                </div>
+                <div class="col-md-6 order-md-1">
+                    <div class="d-flex mb-4">
+                        <div class="flex-shrink-0">
+                            <span class="avatar-title bg-success rounded-circle fs-4 text-white">1</span>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h4 class="fw-bold">Connect Device</h4>
+                            <p class="text-muted">Register your Greeva IoT device to your user account securely.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex mb-4">
+                        <div class="flex-shrink-0">
+                            <span class="avatar-title bg-success rounded-circle fs-4 text-white">2</span>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h4 class="fw-bold">Deploy Sensors</h4>
+                            <p class="text-muted">Place sensors in your nutrient solution and environment.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex">
+                        <div class="flex-shrink-0">
+                            <span class="avatar-title bg-success rounded-circle fs-4 text-white">3</span>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h4 class="fw-bold">Monitor & Optimize</h4>
+                            <p class="text-muted">View live data on your dashboard and receive actionable alerts.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-4 text-center text-muted">
+        <div class="container">
+            <p class="mb-0">© 2026 Smart IoT IITG. All rights reserved.</p>
+        </div>
+    </footer>
+</div>
+{% endblock content %}
+
+{% block extra_javascript %}
+{% include 'partials/footer-scripts.html' %}
+{% endblock extra_javascript %}

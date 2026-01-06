@@ -1,0 +1,18 @@
+Generating sample data...
+Created device: Greenhouse A
+Created device: Aquaponic Tank B
+Generated readings for Greenhouse A - Temperature (°C)
+Generated readings for Greenhouse A - pH Level
+Generated readings for Greenhouse A - Humidity (%)
+Generated readings for Greenhouse A - Soil/Medium Moisture (%)
+Generated readings for Greenhouse A - Light Hours (hrs)
+Generated readings for Greenhouse A - Electrical Conductivity (mS/cm)
+Generated readings for Aquaponic Tank B - Temperature (°C)
+Generated readings for Aquaponic Tank B - pH Level
+Generated readings for Aquaponic Tank B - Humidity (%)
+Generated readings for Aquaponic Tank B - Soil/Medium Moisture (%)
+Generated readings for Aquaponic Tank B - Light Hours (hrs)
+Generated readings for Aquaponic Tank B - Electrical Conductivity (mS/cm)
+Successfully generated sample data
+Running generate_data...
+Successfully generated data

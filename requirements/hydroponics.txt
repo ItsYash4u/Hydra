@@ -1,0 +1,36 @@
+# Hydroponics System Requirements
+# Add to existing requirements/base.txt
+
+# REST Framework & API
+djangorestframework>=3.14.0
+django-filter>=23.1
+django-cors-headers>=4.0.0
+
+# Time-Series & Database
+# timescaledb>=2.10.0
+psycopg2-binary>=2.9.0  # PostgreSQL adapter
+
+# IoT & Real-time Communication
+paho-mqtt>=1.7.0
+# django-channels>=4.0
+channels>=4.0
+channels-redis>=4.0
+
+# Data Export
+openpyxl>=3.1.0
+xlsxwriter>=3.0.0
+
+# Scheduling & Tasks
+celery>=5.3.0
+django-celery-beat>=2.5.0
+redis>=4.5
+
+# SMS/Email Notifications
+twilio>=8.0.0  # SMS provider (optional)
+
+# Monitoring & Logging
+sentry-sdk>=1.20.0
+
+# Utilities
+python-dateutil>=2.8.2
+requests>=2.28.0
