@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Animation Demo - Smart IoT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .demo-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .demo-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+        }
+
+        .demo-card h3 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .demo-card p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .animation-container {
+            min-height: 350px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .controls input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .controls button {
+            padding: 10px 20px;
+            background: #198754;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .controls button:hover {
+            background: #157347;
+        }
+
+        .icon {
+            width: 32px;
+            height: 32px;
+            background: #198754;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Sensor Animation Showcase</h1>
+            <p>Premium Interactive Visualizations for Smart IoT Dashboard</p>
+        </div>
+
+        <div class="grid">
+            <!-- Temperature -->
+            <div class="demo-card">
+                <h3>
+                    <span class="icon">🌡️</span>
+                    Temperature Sensor
+                </h3>
+                <p>Mercury thermometer with color-coded zones</p>
+                <div id="temp-animation" class="animation-container"></div>
+                <div class="controls">
+                    <input type="number" id="temp-value" value="25" min="0" max="50" step="0.1">
+                    <button onclick="updateTemp()">Update</button>
+                </div>
+            </div>
+
+            <!-- pH -->
+            <div class="demo-card">
+                <h3>
+                    <span class="icon">⚗️</span>
+                    pH Sensor
+                </h3>
+                <p>Speedometer gauge with acidic/neutral/alkaline zones</p>
+                <div id="ph-animation" class="animation-container"></div>
+                <div class="controls">
+                    <input type="number" id="ph-value" value="7.0" min="0" max="14" step="0.1">
+                    <button onclick="updatePH()">Update</button>
+                </div>
+            </div>
+
+            <!-- Humidity -->
+            <div class="demo-card">
+                <h3>
+                    <span class="icon">💧</span>
+                    Humidity Sensor
+                </h3>
+                <p>Droplet fill animation with wave effect</p>
+                <div id="humidity-animation" class="animation-container"></div>
+                <div class="controls">
+                    <input type="number" id="humidity-value" value="65" min="0" max="100" step="1">
+                    <button onclick="updateHumidity()">Update</button>
+                </div>
+            </div>
+
+            <!-- CO2 -->
+            <div class="demo-card">
+                <h3>
+                    <span class="icon">🌬️</span>
+                    CO₂ Sensor
+                </h3>
+                <p>Pulsing concentric rings with intensity</p>
+                <div id="co2-animation" class="animation-container"></div>
+                <div class="controls">
+                    <input type="number" id="co2-value" value="800" min="0" max="2000" step="10">
+                    <button onclick="updateCO2()">Update</button>
+                </div>
+            </div>
+
+            <!-- EC -->
+            <div class="demo-card">
+                <h3>
+                    <span class="icon">⚡</span>
+                    EC Sensor
+                </h3>
+                <p>Horizontal energy bar with glow effect</p>
+                <div id="ec-animation" class="animation-container"></div>
+                <div class="controls">
+                    <input type="number" id="ec-value" value="2.5" min="0" max="5" step="0.1">
+                    <button onclick="updateEC()">Update</button>
+                </div>
+            </div>
+
+            <!-- Generic -->
+            <div class="demo-card">
+                <h3>
+                    <span class="icon">📊</span>
+                    Generic Sensor
+                </h3>
+                <p>Circular progress for other sensor types</p>
+                <div id="generic-animation" class="animation-container"></div>
+                <div class="controls">
+                    <input type="number" id="generic-value" value="75" min="0" max="100" step="1">
+                    <button onclick="updateGeneric()">Update</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>✨ Built with pure JavaScript and SVG animations</p>
+            <p>No external animation libraries required</p>
+        </div>
+    </div>
+
+    <!-- Load the sensor animations library -->
+    <script src="../static/js/sensor-animations.js"></script>
+
+    <script>
+        // Initialize all animations
+        function init() {
+            updateTemp();
+            updatePH();
+            updateHumidity();
+            updateCO2();
+            updateEC();
+            updateGeneric();
+        }
+
+        function updateTemp() {
+            const value = parseFloat(document.getElementById('temp-value').value);
+            window.SensorAnimations.temperature('temp-animation', value, 0, 50);
+        }
+
+        function updatePH() {
+            const value = parseFloat(document.getElementById('ph-value').value);
+            window.SensorAnimations.ph('ph-animation', value, 0, 14);
+        }
+
+        function updateHumidity() {
+            const value = parseFloat(document.getElementById('humidity-value').value);
+            window.SensorAnimations.humidity('humidity-animation', value, 0, 100);
+        }
+
+        function updateCO2() {
+            const value = parseFloat(document.getElementById('co2-value').value);
+            window.SensorAnimations.co2('co2-animation', value, 0, 2000);
+        }
+
+        function updateEC() {
+            const value = parseFloat(document.getElementById('ec-value').value);
+            window.SensorAnimations.ec('ec-animation', value, 0, 5);
+        }
+
+        function updateGeneric() {
+            const value = parseFloat(document.getElementById('generic-value').value);
+            window.SensorAnimations.generic('generic-animation', value, 0, 100, '%', 'Progress');
+        }
+
+        // Initialize on load
+        window.addEventListener('load', init);
+
+        // Auto-update demo with random values every 5 seconds
+        setInterval(() => {
+            document.getElementById('temp-value').value = (Math.random() * 50).toFixed(1);
+            document.getElementById('ph-value').value = (Math.random() * 14).toFixed(1);
+            document.getElementById('humidity-value').value = Math.floor(Math.random() * 100);
+            document.getElementById('co2-value').value = Math.floor(Math.random() * 2000);
+            document.getElementById('ec-value').value = (Math.random() * 5).toFixed(1);
+            document.getElementById('generic-value').value = Math.floor(Math.random() * 100);
+
+            updateTemp();
+            updatePH();
+            updateHumidity();
+            updateCO2();
+            updateEC();
+            updateGeneric();
+        }, 5000);
+    </script>
+</body>
+
+</html>

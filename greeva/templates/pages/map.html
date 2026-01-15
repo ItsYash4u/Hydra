@@ -24,56 +24,69 @@
 {% endblock page_content %}
 
 {% block extra_javascript %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const mapData = JSON.parse(document.getElementById('map-data-json').textContent);
+        try {
+            const mapData = JSON.parse(document.getElementById('map-data-json').textContent);
+            console.log("Map Data:", mapData);
 
-        var map = L.map('full-map').setView([mapData.center_lat, mapData.center_lon], 6);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+            if (typeof L === 'undefined') {
+                throw new Error('Leaflet L is not defined. Script failed to load.');
+            }
 
-        mapData.points.forEach(point => {
-            const color = point.status === 'Online' ? 'green' : 'red';
+            const lat = mapData.center_lat || 20.59;
+            const lon = mapData.center_lon || 78.96;
 
-            const markerHtml = `
-                <div style="
-                    background-color: ${color};
-                    width: 15px;
-                    height: 15px;
-                    border-radius: 50%;
-                    border: 2px solid white;
-                    box-shadow: 0 0 10px rgba(0,0,0,0.5);
-                "></div>
-            `;
+            var map = L.map('full-map').setView([lat, lon], 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
 
-            const icon = L.divIcon({
-                className: 'custom-marker',
-                html: markerHtml,
-                iconSize: [20, 20],
-                iconAnchor: [10, 10]
+            mapData.points.forEach(point => {
+                const color = point.status === 'Online' ? 'green' : 'red';
+
+                const markerHtml = `
+                    <div style="
+                        background-color: ${color};
+                        width: 15px;
+                        height: 15px;
+                        border-radius: 50%;
+                        border: 2px solid white;
+                        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+                    "></div>
+                `;
+
+                const icon = L.divIcon({
+                    className: 'custom-marker',
+                    html: markerHtml,
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10]
+                });
+
+                const marker = L.marker([point.latitude, point.longitude], { icon: icon }).addTo(map);
+
+                const popupContent = `
+                    <div style="font-family: 'Inter', sans-serif;">
+                        <h5 style="margin: 0 0 5px 0;">${point.device_id}</h5>
+                        <p style="margin: 0; font-size: 12px; color: #666;">Owner: <b>${point.owner_name}</b></p>
+                        <p style="margin: 5px 0 0 0; color: ${color}; font-weight: bold;">${point.status}</p>
+                        <a href="/pages/analytics/?device_id=${point.device_id}" style="display: block; margin-top: 8px; font-size: 12px;">View Analytics &rarr;</a>
+                    </div>
+                `;
+
+                marker.bindPopup(popupContent);
+
+                marker.on('mouseover', function (e) {
+                    this.openPopup();
+                });
             });
-
-            const marker = L.marker([point.latitude, point.longitude], { icon: icon }).addTo(map);
-
-            const popupContent = `
-                <div style="font-family: 'Inter', sans-serif;">
-                    <h5 style="margin: 0 0 5px 0;">${point.device_id}</h5>
-                    <p style="margin: 0; font-size: 12px; color: #666;">Owner: <b>${point.owner_name}</b></p>
-                    <p style="margin: 5px 0 0 0; color: ${color}; font-weight: bold;">${point.status}</p>
-                    <a href="/pages/analytics/?device_id=${point.device_id}" style="display: block; margin-top: 8px; font-size: 12px;">View Analytics &rarr;</a>
-                </div>
-            `;
-
-            marker.bindPopup(popupContent);
-
-            marker.on('mouseover', function (e) {
-                this.openPopup();
-            });
-        });
+            console.log("✅ Map initialized successfully");
+        } catch (e) {
+            console.error("❌ Map initialization error:", e);
+        }
     });
 </script>
 {% endblock extra_javascript %}

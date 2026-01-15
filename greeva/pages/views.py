@@ -129,6 +129,14 @@ def map_view(request):
     return render(request, 'pages/map.html', context)
 
 
+def info_view(request):
+    """
+    Info page - Educational content about hydroponics
+    No backend logic required - static informational page
+    """
+    return render(request, 'pages/info.html')
+
+
 
 
 

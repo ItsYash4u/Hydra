@@ -4,7 +4,7 @@ Updated to use UserDevice, Device, SensorValue
 """
 
 from rest_framework import serializers
-from .models import UserDevice, Device, SensorValue
+from .models import UserDevice, Device, SensorValue, SensorReading
 
 
 class UserDeviceDTO(serializers.Serializer):
@@ -67,3 +67,33 @@ class MapResponseDTO(serializers.Serializer):
     points = MapPointDTO(many=True)
     center_lat = serializers.FloatField()
     center_lon = serializers.FloatField()
+
+
+class SensorReadingSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the high-frequency SensorReading model.
+    Used for GET responses.
+    """
+    timestamp = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
+
+    class Meta:
+        model = SensorReading
+        fields = [
+            'device_id', 'timestamp', 
+            'temperature', 'humidity', 'ph', 'ec', 
+            'tds', 'co2', 'light', 'water_temp', 'dissolved_oxygen'
+        ]
+
+
+class SensorIngestSerializer(serializers.ModelSerializer):
+    """
+    Serializer for INGESTING sensor data (POST).
+    """
+    class Meta:
+        model = SensorReading
+        fields = [
+            'device_id', 
+            'temperature', 'humidity', 'ph', 'ec', 
+            'tds', 'co2', 'light', 'water_temp', 'dissolved_oxygen'
+        ]
+

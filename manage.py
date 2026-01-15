@@ -2,11 +2,13 @@
 # ruff: noqa
 import os
 import sys
+import pymysql
+
+pymysql.install_as_MySQLdb()
+
 from pathlib import Path
 
 if __name__ == "__main__":
-    # import pymysql
-    # pymysql.install_as_MySQLdb()
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.local")
 
     try:

@@ -1,0 +1,451 @@
+{% extends 'vertical.html' %}
+{% load static %}
+
+{% block title %}Hydroponics Info{% endblock title %}
+
+{% block extra_css %}
+<style>
+    /* Info Page Styles - Dark Mode Compatible */
+    :root {
+        --info-card-bg: #ffffff;
+        --info-border: #e3e6f0;
+        --info-text: #495057;
+        --info-text-muted: #6c757d;
+        --info-heading: #2c3e50;
+        --info-icon-bg: #f8f9fa;
+    }
+
+    [data-bs-theme="dark"] {
+        --info-card-bg: #232529;
+        --info-border: #2d3238;
+        --info-text: #e3e6f0;
+        --info-text-muted: #adb5bd;
+        --info-heading: #e3e6f0;
+        --info-icon-bg: #2d3238;
+    }
+
+    .info-section {
+        margin-bottom: 40px;
+    }
+
+    .info-card {
+        background: var(--info-card-bg);
+        border: 1px solid var(--info-border);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .info-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+    }
+
+    .info-card h5 {
+        color: var(--info-heading);
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+
+    .info-card p {
+        color: var(--info-text);
+        line-height: 1.6;
+        margin-bottom: 0;
+    }
+
+    .system-card {
+        background: var(--info-card-bg);
+        border: 1px solid var(--info-border);
+        border-radius: 12px;
+        padding: 20px;
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .system-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+    }
+
+    .system-card h6 {
+        color: var(--info-heading);
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .system-card p {
+        color: var(--info-text);
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 12px;
+    }
+
+    .system-card .badge {
+        font-size: 11px;
+        padding: 4px 8px;
+    }
+
+    .component-item {
+        background: var(--info-card-bg);
+        border: 1px solid var(--info-border);
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .component-item:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .component-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+
+    .component-content h6 {
+        color: var(--info-heading);
+        font-weight: 600;
+        margin-bottom: 6px;
+        font-size: 15px;
+    }
+
+    .component-content p {
+        color: var(--info-text);
+        font-size: 13px;
+        line-height: 1.5;
+        margin-bottom: 0;
+    }
+
+    .sensor-range {
+        background: var(--info-icon-bg);
+        border: 1px solid var(--info-border);
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 12px;
+    }
+
+    .sensor-range .label {
+        color: var(--info-text-muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+
+    .sensor-range .value {
+        color: var(--info-heading);
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    .section-title {
+        color: var(--info-heading);
+        font-weight: 700;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--info-border);
+    }
+</style>
+{% endblock extra_css %}
+
+{% block page_title %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="page-title mb-0">Hydroponics Information</h4>
+        <p class="text-muted mb-0">Learn about hydroponic systems and monitoring</p>
+    </div>
+</div>
+{% endblock page_title %}
+
+{% block page_content %}
+
+<!-- Section 1: What is Hydroponics? -->
+<div class="info-section">
+    <h4 class="section-title">What is Hydroponics?</h4>
+    <div class="info-card">
+        <h5>Definition</h5>
+        <p>Hydroponics is a method of growing plants without soil, using mineral nutrient solutions in a water solvent.
+            Plants receive nutrients directly through their root systems, allowing for precise control over growing
+            conditions.</p>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="info-card">
+                <h5>Why Use Hydroponics?</h5>
+                <p>Hydroponics enables year-round cultivation, uses 90% less water than traditional farming, requires
+                    less space, and provides faster growth rates with higher yields.</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="info-card">
+                <h5>Key Benefits</h5>
+                <p>No soil-borne diseases, precise nutrient control, reduced pesticide use, consistent crop quality, and
+                    the ability to grow in urban or non-arable areas.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Section 2: Types of Hydroponic Systems -->
+<div class="info-section">
+    <h4 class="section-title">Types of Hydroponic Systems</h4>
+    <div class="row g-3">
+        <div class="col-lg-4 col-md-6">
+            <div class="system-card">
+                <h6>NFT (Nutrient Film Technique)</h6>
+                <p>A thin film of nutrient solution continuously flows over plant roots in a sloped channel.</p>
+                <div class="mb-2">
+                    <span class="badge bg-success">Efficient</span>
+                    <span class="badge bg-info">Low Water Use</span>
+                </div>
+                <small class="text-muted">Best for: Leafy greens, herbs</small>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="system-card">
+                <h6>DWC (Deep Water Culture)</h6>
+                <p>Plant roots are suspended in oxygenated nutrient solution with constant aeration.</p>
+                <div class="mb-2">
+                    <span class="badge bg-primary">Simple</span>
+                    <span class="badge bg-success">Fast Growth</span>
+                </div>
+                <small class="text-muted">Best for: Lettuce, spinach, herbs</small>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="system-card">
+                <h6>Aeroponics</h6>
+                <p>Plant roots hang in air and are misted with nutrient solution at regular intervals.</p>
+                <div class="mb-2">
+                    <span class="badge bg-warning">Advanced</span>
+                    <span class="badge bg-success">Maximum Oxygen</span>
+                </div>
+                <small class="text-muted">Best for: High-value crops</small>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="system-card">
+                <h6>Drip System</h6>
+                <p>Nutrient solution is dripped onto the base of each plant through small tubes.</p>
+                <div class="mb-2">
+                    <span class="badge bg-info">Versatile</span>
+                    <span class="badge bg-primary">Scalable</span>
+                </div>
+                <small class="text-muted">Best for: Tomatoes, peppers, cucumbers</small>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="system-card">
+                <h6>Wick System</h6>
+                <p>Passive system using wicks to draw nutrient solution from reservoir to growing medium.</p>
+                <div class="mb-2">
+                    <span class="badge bg-secondary">Passive</span>
+                    <span class="badge bg-success">Low Maintenance</span>
+                </div>
+                <small class="text-muted">Best for: Small plants, herbs</small>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="system-card">
+                <h6>Ebb and Flow</h6>
+                <p>Growing tray is periodically flooded with nutrient solution, then drained back to reservoir.</p>
+                <div class="mb-2">
+                    <span class="badge bg-primary">Flexible</span>
+                    <span class="badge bg-info">Reliable</span>
+                </div>
+                <small class="text-muted">Best for: Various crops</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Section 3: Core Components -->
+<div class="info-section">
+    <h4 class="section-title">Core Components</h4>
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="component-item">
+                <div class="component-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+                    <i class="ti ti-droplet"></i>
+                </div>
+                <div class="component-content">
+                    <h6>Water Reservoir</h6>
+                    <p>Holds nutrient solution and provides a stable environment for plant roots. Size depends on system
+                        scale and plant water requirements.</p>
+                </div>
+            </div>
+
+            <div class="component-item">
+                <div class="component-icon" style="background: rgba(251, 191, 36, 0.1); color: #fbbf24;">
+                    <i class="ti ti-bulb"></i>
+                </div>
+                <div class="component-content">
+                    <h6>Grow Lights</h6>
+                    <p>Provide essential light spectrum for photosynthesis. LED lights are energy-efficient and can be
+                        customized for different growth stages.</p>
+                </div>
+            </div>
+
+            <div class="component-item">
+                <div class="component-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                    <i class="ti ti-ripple"></i>
+                </div>
+                <div class="component-content">
+                    <h6>Water Pumps</h6>
+                    <p>Circulate nutrient solution throughout the system. Essential for maintaining proper flow and
+                        oxygenation.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="component-item">
+                <div class="component-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                    <i class="ti ti-device-analytics"></i>
+                </div>
+                <div class="component-content">
+                    <h6>Sensors (pH, EC, Temperature)</h6>
+                    <p>Monitor critical parameters in real-time. Essential for maintaining optimal growing conditions
+                        and preventing issues.</p>
+                </div>
+            </div>
+
+            <div class="component-item">
+                <div class="component-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
+                    <i class="ti ti-flask"></i>
+                </div>
+                <div class="component-content">
+                    <h6>Nutrient Solutions</h6>
+                    <p>Carefully balanced mixtures of essential minerals. Different formulations exist for vegetative
+                        and flowering stages.</p>
+                </div>
+            </div>
+
+            <div class="component-item">
+                <div class="component-icon" style="background: rgba(236, 72, 153, 0.1); color: #ec4899;">
+                    <i class="ti ti-wind"></i>
+                </div>
+                <div class="component-content">
+                    <h6>Air Pumps & Stones</h6>
+                    <p>Oxygenate the nutrient solution, preventing root rot and promoting healthy root development.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Section 4: Setup & Monitoring Basics -->
+<div class="info-section">
+    <h4 class="section-title">Setup & Monitoring Basics</h4>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="info-card">
+                <h5>Initial Setup</h5>
+                <p><strong>1. System Assembly:</strong> Install reservoir, pumps, and growing containers according to
+                    system type.</p>
+                <p><strong>2. Nutrient Preparation:</strong> Mix nutrient solution following manufacturer guidelines.
+                </p>
+                <p><strong>3. pH Adjustment:</strong> Balance pH to optimal range (5.5-6.5) before adding plants.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="info-card">
+                <h5>Sensor Calibration</h5>
+                <p><strong>pH Sensors:</strong> Calibrate using standard buffer solutions (pH 4.0, 7.0, 10.0).</p>
+                <p><strong>EC Sensors:</strong> Use calibration solution (typically 1413 μS/cm).</p>
+                <p><strong>Temperature:</strong> Verify against known temperature reference.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="info-card">
+                <h5>Monitoring Best Practices</h5>
+                <p><strong>Daily:</strong> Check pH, EC, water level, and plant health.</p>
+                <p><strong>Weekly:</strong> Clean filters, inspect pumps, check for algae growth.</p>
+                <p><strong>Monthly:</strong> Deep clean system, recalibrate sensors, replace solution.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Section 5: Understanding Sensor Data -->
+<div class="info-section">
+    <h4 class="section-title">Understanding Sensor Data</h4>
+    <div class="row g-3">
+        <div class="col-lg-3 col-md-6">
+            <div class="sensor-range">
+                <div class="label">pH Level</div>
+                <div class="value text-primary">5.5 - 6.5</div>
+                <small class="text-muted d-block mt-2">Optimal range for nutrient absorption. Below 5.5 is acidic, above
+                    6.5 is alkaline.</small>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="sensor-range">
+                <div class="label">EC (Electrical Conductivity)</div>
+                <div class="value text-success">1.2 - 2.0 mS/cm</div>
+                <small class="text-muted d-block mt-2">Indicates nutrient concentration. Higher EC = more nutrients in
+                    solution.</small>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="sensor-range">
+                <div class="label">Water Temperature</div>
+                <div class="value text-danger">18 - 22°C</div>
+                <small class="text-muted d-block mt-2">Affects oxygen levels and nutrient uptake. Too warm reduces
+                    dissolved oxygen.</small>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="sensor-range">
+                <div class="label">Humidity</div>
+                <div class="value text-info">50 - 70%</div>
+                <small class="text-muted d-block mt-2">Affects transpiration rate. Too low causes stress, too high risks
+                    mold.</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-card mt-3">
+        <h5>Why These Values Matter</h5>
+        <p><strong>pH:</strong> Controls nutrient availability. Each nutrient has an optimal pH range for absorption.
+            Incorrect pH locks out nutrients even if present.</p>
+        <p><strong>EC:</strong> Indicates total dissolved salts. Too low means insufficient nutrients; too high can burn
+            roots and inhibit water uptake.</p>
+        <p><strong>Temperature:</strong> Affects metabolic rates, oxygen solubility, and pathogen growth. Consistent
+            temperature promotes stable growth.</p>
+        <p class="mb-0"><strong>Humidity:</strong> Influences transpiration, which drives nutrient uptake. Proper
+            humidity prevents stress and disease.</p>
+    </div>
+</div>
+
+{% endblock page_content %}
+
+{% block extra_javascript %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('✅ Info page loaded');
+    });
+</script>
+{% endblock extra_javascript %}

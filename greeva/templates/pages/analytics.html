@@ -3,157 +3,808 @@
 
 {% block title %}Analytics{% endblock title %}
 
+{% block extra_css %}
+<style>
+    /* ============================================
+       ANALYTICS PAGE - DARK MODE COMPATIBLE
+       ============================================ */
+
+    /* CSS Variables for Light/Dark Mode */
+    :root {
+        --analytics-bg: #ffffff;
+        --analytics-border: #e3e6f0;
+        --analytics-text: #495057;
+        --analytics-text-muted: #6c757d;
+        --analytics-hover-bg: #f8f9fa;
+        --analytics-card-bg: #ffffff;
+        --analytics-empty-bg: #f8f9fa;
+        --analytics-shadow: rgba(0, 0, 0, 0.08);
+    }
+
+    [data-bs-theme="dark"] {
+        --analytics-bg: #1a1d21;
+        --analytics-border: #2d3238;
+        --analytics-text: #e3e6f0;
+        --analytics-text-muted: #adb5bd;
+        --analytics-hover-bg: #2d3238;
+        --analytics-card-bg: #232529;
+        --analytics-empty-bg: #2d3238;
+        --analytics-shadow: rgba(0, 0, 0, 0.3);
+    }
+
+    /* Device Selector */
+    .device-selector {
+        position: relative;
+        min-width: 300px;
+    }
+
+    .device-selector-button {
+        width: 100%;
+        padding: 12px 16px;
+        background: var(--analytics-card-bg);
+        border: 2px solid var(--analytics-border);
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: var(--analytics-text);
+    }
+
+    .device-selector-button:hover {
+        border-color: #198754;
+        box-shadow: 0 2px 8px rgba(25, 135, 84, 0.2);
+    }
+
+    .device-selector-button.active {
+        border-color: #198754;
+        background: rgba(25, 135, 84, 0.1);
+    }
+
+    .device-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        margin-top: 8px;
+        background: var(--analytics-card-bg);
+        border: 2px solid var(--analytics-border);
+        border-radius: 8px;
+        box-shadow: 0 4px 16px var(--analytics-shadow);
+        max-height: 300px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+    }
+
+    .device-dropdown.show {
+        display: block;
+        animation: dropdownSlide 0.3s ease;
+    }
+
+    @keyframes dropdownSlide {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .device-option {
+        padding: 12px 16px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        border-bottom: 1px solid var(--analytics-border);
+        color: var(--analytics-text);
+    }
+
+    .device-option:last-child {
+        border-bottom: none;
+    }
+
+    .device-option:hover {
+        background: var(--analytics-hover-bg);
+    }
+
+    .device-option.selected {
+        background: rgba(25, 135, 84, 0.15);
+        color: #198754;
+        font-weight: 600;
+    }
+
+    /* Time Range Filter */
+    .time-range-filter {
+        display: flex;
+        gap: 8px;
+        background: var(--analytics-card-bg);
+        padding: 4px;
+        border-radius: 8px;
+        border: 1px solid var(--analytics-border);
+    }
+
+    .time-range-btn {
+        padding: 8px 16px;
+        border: none;
+        background: transparent;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--analytics-text-muted);
+        transition: all 0.2s ease;
+    }
+
+    .time-range-btn:hover {
+        background: var(--analytics-hover-bg);
+        color: #198754;
+    }
+
+    .time-range-btn.active {
+        background: #198754;
+        color: white;
+    }
+
+    /* Freshness Indicator */
+    .freshness-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: var(--analytics-hover-bg);
+        border-radius: 6px;
+        font-size: 12px;
+        color: var(--analytics-text-muted);
+    }
+
+    .freshness-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #10b981;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+        0%,
+        100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.5;
+        }
+    }
+
+    /* Sensor Cards */
+    .sensor-visual-card {
+        background: var(--analytics-card-bg);
+        border-radius: 12px;
+        padding: 24px;
+        border: 1px solid var(--analytics-border);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+    .sensor-visual-card:hover {
+        box-shadow: 0 4px 12px var(--analytics-shadow);
+        transform: translateY(-2px);
+    }
+
+    .sensor-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 16px;
+    }
+
+    .sensor-value {
+        font-size: 32px;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 8px;
+    }
+
+    .sensor-label {
+        font-size: 14px;
+        color: var(--analytics-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+    }
+
+    .empty-state-icon {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 24px;
+        background: var(--analytics-empty-bg);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        color: var(--analytics-text-muted);
+    }
+
+    .empty-state-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--analytics-text);
+        margin-bottom: 12px;
+    }
+
+    .empty-state-description {
+        font-size: 16px;
+        color: var(--analytics-text-muted);
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    /* Chart Container */
+    .chart-container {
+        background: var(--analytics-card-bg);
+        border-radius: 12px;
+        padding: 24px;
+        border: 1px solid var(--analytics-border);
+    }
+
+    .chart-container h5 {
+        color: var(--analytics-text);
+    }
+
+    /* Summary Cards */
+    .summary-card {
+        background: var(--analytics-card-bg);
+        border-radius: 12px;
+        padding: 20px;
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+    }
+
+    .summary-card:hover {
+        box-shadow: 0 4px 12px var(--analytics-shadow);
+    }
+
+    .summary-card.water-quality {
+        border-left-color: #0dcaf0;
+    }
+
+    .summary-card.environment {
+        border-left-color: #ffc107;
+    }
+
+    .summary-card.nutrients {
+        border-left-color: #198754;
+    }
+
+    .summary-card h6 {
+        color: var(--analytics-text-muted);
+    }
+
+    .summary-card .text-muted {
+        color: var(--analytics-text-muted) !important;
+    }
+
+    .summary-card strong {
+        color: var(--analytics-text);
+    }
+
+    /* Status Badge */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-badge.online {
+        background: rgba(25, 135, 84, 0.15);
+        color: #198754;
+    }
+
+    .status-badge.offline {
+        background: rgba(220, 53, 69, 0.15);
+        color: #dc3545;
+    }
+
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+</style>
+{% endblock extra_css %}
+
 {% block page_title %}
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <h4 class="page-title mb-0">Device Analytics</h4>
-        <p class="text-muted mb-0">Monitor and analyze device performance</p>
+        <p class="text-muted mb-0">Real-time sensor monitoring and analysis</p>
     </div>
-    <button class="btn btn-primary" onclick="showAddDeviceModal()">
-        <i class="ti ti-plus me-1"></i>Add Device
-    </button>
 </div>
 {% endblock page_title %}
 
-
 {% block page_content %}
-<div class="row">
-    <div class="col-md-3">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Select Device</h5>
-            </div>
-            <div class="card-body">
-                <div class="list-group list-group-flush">
-                    {% for device in devices %}
-                    <a href="?device_id={{ device.id }}"
-                        class="list-group-item list-group-item-action {% if device.id == selected_device.id %}active{% endif %}">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">{{ device.device_id }}</h5>
+
+<!-- Top Control Bar -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <!-- Device Selector -->
+            <div class="device-selector">
+                <div class="device-selector-button" id="deviceSelectorButton" onclick="toggleDeviceDropdown()">
+                    <div>
+                        <div class="fw-semibold" id="selectedDeviceName">
+                            {% if selected_device %}
+                            {{ selected_device.name }}
+                            {% else %}
+                            Select a device
+                            {% endif %}
                         </div>
-                        <small>{% if device.id == selected_device.id %}Selected{% endif %}</small>
-                    </a>
+                        <small class="text-muted" id="selectedDeviceId">
+                            {% if selected_device %}
+                            ID: {{ selected_device.device_id }}
+                            {% else %}
+                            Choose from available devices
+                            {% endif %}
+                        </small>
+                    </div>
+                    <i class="ti ti-chevron-down" id="dropdownIcon"></i>
+                </div>
+
+                <!-- Dropdown Panel -->
+                <div class="device-dropdown" id="deviceDropdown">
+                    {% for device in devices %}
+                    <div class="device-option {% if selected_device and device.id == selected_device.id %}selected{% endif %}"
+                        onclick="selectDevice('{{ device.id }}', '{{ device.name }}', '{{ device.device_id }}')">
+                        <div class="fw-semibold">{{ device.name }}</div>
+                        <small class="text-muted">ID: {{ device.device_id }}</small>
+                    </div>
+                    {% empty %}
+                    <div class="device-option text-muted">
+                        No devices available
+                    </div>
                     {% endfor %}
+                </div>
+            </div>
+
+            <!-- Time Range Filter & Freshness -->
+            <div class="d-flex align-items-center gap-3">
+                <div class="freshness-indicator" id="freshnessIndicator" style="display: none;">
+                    <span class="freshness-dot"></span>
+                    <span id="freshnessText">Last updated: just now</span>
+                </div>
+
+                <div class="time-range-filter" id="timeRangeFilter" style="display: none;">
+                    <button class="time-range-btn active" data-range="1h" onclick="setTimeRange('1h')">Last 1h</button>
+                    <button class="time-range-btn" data-range="6h" onclick="setTimeRange('6h')">Last 6h</button>
+                    <button class="time-range-btn" data-range="24h" onclick="setTimeRange('24h')">Last 24h</button>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <div class="col-md-9">
-        {% if selected_device %}
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4 class="header-title">Real-Time Sensor Trends: {{ selected_device.device_id }}</h4>
-                            <span class="badge bg-success">Online</span>
-                        </div>
-                        <div id="analytics-chart" class="apex-charts" dir="ltr"></div>
-                    </div>
+<!-- Main Content -->
+<div id="analyticsContent">
+    {% if not selected_device %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="ti ti-device-analytics"></i>
+        </div>
+        <h3 class="empty-state-title">Select a device to view analytics</h3>
+        <p class="empty-state-description">
+            Choose a device from the dropdown above to see real-time sensor data and analytics
+        </p>
+    </div>
+    {% else %}
+    <!-- Device Analytics -->
+    <div id="deviceAnalytics">
+        <!-- Status Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ selected_device.name }}</h5>
+                    <span class="status-badge online" id="deviceStatus">
+                        <span class="status-dot"></span>
+                        Online
+                    </span>
                 </div>
             </div>
         </div>
 
-        <div class="row">
+        <!-- Sensor Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="sensor-visual-card">
+                    <div class="sensor-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                        <i class="ti ti-thermometer"></i>
+                    </div>
+                    <div class="sensor-value" style="color: #ef4444;" id="sensorTemp">--</div>
+                    <div class="sensor-label">Temperature (°C)</div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="sensor-visual-card">
+                    <div class="sensor-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+                        <i class="ti ti-flask"></i>
+                    </div>
+                    <div class="sensor-value" style="color: #3b82f6;" id="sensorPH">--</div>
+                    <div class="sensor-label">pH Level</div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="sensor-visual-card">
+                    <div class="sensor-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                        <i class="ti ti-bolt"></i>
+                    </div>
+                    <div class="sensor-value" style="color: #10b981;" id="sensorEC">--</div>
+                    <div class="sensor-label">EC (mS/cm)</div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="sensor-visual-card">
+                    <div class="sensor-icon" style="background: rgba(13, 202, 240, 0.1); color: #0dcaf0;">
+                        <i class="ti ti-droplet"></i>
+                    </div>
+                    <div class="sensor-value" style="color: #0dcaf0;" id="sensorHumidity">--</div>
+                    <div class="sensor-label">Humidity (%)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="chart-container">
+                    <h5 class="mb-3">Sensor Trends</h5>
+                    <div id="analyticsChart" style="min-height: 350px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row g-3">
             <div class="col-xl-4 col-md-6">
-                <div class="card border-primary border-bottom border-3">
-                    <div class="card-body">
-                        <h5 class="text-muted text-uppercase mt-0">Water Quality</h5>
-                        <h2 class="my-3" id="val-ph">pH: --</h2>
-                        <h2 class="my-3" id="val-ec">EC: --</h2>
+                <div class="summary-card water-quality">
+                    <h6 class="text-muted text-uppercase mb-3" style="font-size: 12px; letter-spacing: 0.5px;">Water
+                        Quality</h6>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-muted" style="font-size: 14px;">pH Level</span>
+                            <strong id="summaryPH">--</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted" style="font-size: 14px;">EC</span>
+                            <strong id="summaryEC">--</strong>
+                        </div>
                     </div>
                 </div>
             </div>
+
             <div class="col-xl-4 col-md-6">
-                <div class="card border-warning border-bottom border-3">
-                    <div class="card-body">
-                        <h5 class="text-muted text-uppercase mt-0">Environment</h5>
-                        <h2 class="my-3" id="val-temp">Temp: -- °C</h2>
-                        <h2 class="my-3" id="val-humidity">Hum: -- %</h2>
+                <div class="summary-card environment">
+                    <h6 class="text-muted text-uppercase mb-3" style="font-size: 12px; letter-spacing: 0.5px;">
+                        Environment</h6>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-muted" style="font-size: 14px;">Temperature</span>
+                            <strong id="summaryTemp">--</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted" style="font-size: 14px;">Humidity</span>
+                            <strong id="summaryHumidity">--</strong>
+                        </div>
                     </div>
                 </div>
             </div>
+
             <div class="col-xl-4 col-md-6">
-                <div class="card border-success border-bottom border-3">
-                    <div class="card-body">
-                        <h5 class="text-muted text-uppercase mt-0">Nutrients</h5>
-                        <h3 class="my-2" id="val-npk">NPK: -- / -- / --</h3>
+                <div class="summary-card nutrients">
+                    <h6 class="text-muted text-uppercase mb-3" style="font-size: 12px; letter-spacing: 0.5px;">Nutrients
+                        (NPK)</h6>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-muted" style="font-size: 14px;">N / P / K</span>
+                            <strong id="summaryNPK">-- / -- / --</strong>
+                        </div>
                         <small class="text-muted">mg/L</small>
                     </div>
                 </div>
             </div>
         </div>
-        {% else %}
-        <div class="alert alert-warning">No devices found.</div>
-        {% endif %}
     </div>
+    {% endif %}
 </div>
+
 {% endblock page_content %}
 
 {% block extra_javascript %}
-<!-- Dashboard Interactions (for Add Device modal) -->
-<script src="{% static 'js/dashboard-interactions.js' %}"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const deviceId = "{{ selected_device.id|default:'' }}";
 
-        var options = {
+<script>
+    // Analytics Page Logic
+    let currentDeviceId = "{{ selected_device.id|default:'' }}";
+    let currentTimeRange = '1h';
+    let analyticsChart = null;
+    let updateInterval = null;
+    let sensorDataBuffer = {
+        temperature: [],
+        ph: [],
+        ec: [],
+        timestamps: []
+    };
+
+    // Device Selector
+    function toggleDeviceDropdown() {
+        const dropdown = document.getElementById('deviceDropdown');
+        const button = document.getElementById('deviceSelectorButton');
+        const icon = document.getElementById('dropdownIcon');
+
+        dropdown.classList.toggle('show');
+        button.classList.toggle('active');
+        icon.style.transform = dropdown.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+
+    document.addEventListener('click', function (event) {
+        const selector = document.querySelector('.device-selector');
+        if (selector && !selector.contains(event.target)) {
+            const dropdown = document.getElementById('deviceDropdown');
+            const button = document.getElementById('deviceSelectorButton');
+            const icon = document.getElementById('dropdownIcon');
+
+            if (dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+                button.classList.remove('active');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+    });
+
+    function selectDevice(deviceId, deviceName, deviceIdStr) {
+        document.getElementById('selectedDeviceName').textContent = deviceName;
+        document.getElementById('selectedDeviceId').textContent = `ID: ${deviceIdStr}`;
+        toggleDeviceDropdown();
+        currentDeviceId = deviceId;
+        window.location.href = `?device_id=${deviceId}`;
+    }
+
+    // Time Range
+    function setTimeRange(range) {
+        currentTimeRange = range;
+        document.querySelectorAll('.time-range-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-range') === range) {
+                btn.classList.add('active');
+            }
+        });
+
+        if (currentDeviceId) {
+            // Clear buffer and refetch
+            sensorDataBuffer = { temperature: [], ph: [], ec: [], timestamps: [] };
+            fetchAnalyticsData();
+        }
+    }
+
+    // Initialize Chart with Dark Mode Support
+    function initializeChart() {
+        const chartElement = document.getElementById('analyticsChart');
+        if (!chartElement) return;
+
+        // Detect dark mode
+        const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const textColor = isDarkMode ? '#e3e6f0' : '#495057';
+        const gridColor = isDarkMode ? '#2d3238' : '#e3e6f0';
+
+        const options = {
             series: [{
-                name: "Temperature",
+                name: 'Temperature (°C)',
                 data: []
-            },
-            {
-                name: "pH",
+            }, {
+                name: 'pH',
+                data: []
+            }, {
+                name: 'EC (mS/cm)',
                 data: []
             }],
             chart: {
-                height: 350,
                 type: 'line',
+                height: 350,
                 animations: {
                     enabled: true,
-                    easing: 'linear',
-                    dynamicAnimation: {
-                        speed: 1000
-                    }
+                    easing: 'easeinout',
+                    speed: 800
                 },
-                toolbar: { show: false }
+                toolbar: { show: false },
+                zoom: { enabled: false },
+                background: 'transparent'
             },
-            stroke: { curve: 'smooth' },
-            colors: ['#727cf5', '#0acf97'],
+            stroke: {
+                curve: 'smooth',
+                width: 3
+            },
+            colors: ['#ef4444', '#3b82f6', '#10b981'],
             xaxis: {
                 type: 'datetime',
-                range: 60000 // 1 minute window
+                labels: {
+                    style: {
+                        colors: textColor,
+                        fontSize: '12px'
+                    },
+                    datetimeFormatter: {
+                        hour: 'HH:mm'
+                    }
+                }
+            },
+            yaxis: {
+                labels: {
+                    style: {
+                        colors: textColor,
+                        fontSize: '12px'
+                    }
+                }
+            },
+            grid: {
+                borderColor: gridColor,
+                strokeDashArray: 4
+            },
+            legend: {
+                position: 'top',
+                horizontalAlign: 'right',
+                fontSize: '14px',
+                fontWeight: 500,
+                labels: {
+                    colors: textColor
+                }
+            },
+            tooltip: {
+                theme: isDarkMode ? 'dark' : 'light',
+                x: {
+                    format: 'dd MMM HH:mm'
+                }
             }
         };
 
-        var chart = new ApexCharts(document.querySelector("#analytics-chart"), options);
-        chart.render();
+        analyticsChart = new ApexCharts(chartElement, options);
+        analyticsChart.render();
 
-        function updateData() {
-            if (!deviceId) return;
+        console.log('✅ Analytics chart initialized');
+    }
 
-            fetch(`/hydroponics/api/latest-data/${deviceId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    const now = new Date().getTime();
+    // Fetch Data
+    async function fetchAnalyticsData() {
+        if (!currentDeviceId) return;
 
-                    // Update DOM
-                    if (data.ph) document.getElementById('val-ph').innerText = `pH: ${data.ph}`;
-                    if (data.ec) document.getElementById('val-ec').innerText = `EC: ${data.ec}`;
-                    if (data.temperature) document.getElementById('val-temp').innerText = `Temp: ${data.temperature} °C`;
-                    if (data.humidity) document.getElementById('val-humidity').innerText = `Hum: ${data.humidity} %`;
-                    if (data.nitrogen) document.getElementById('val-npk').innerText = `NPK: ${data.nitrogen} / ${data.phosphorus} / ${data.potassium}`;
+        try {
+            const response = await fetch(`/hydroponics/api/latest/${currentDeviceId}/`);
+            const data = await response.json();
 
-                    // Update Chart
-                    // In a real app we'd append to the series correctly
-                });
+            // Update sensor cards
+            updateSensorCards(data);
+            updateSummaryCards(data);
+
+            // Add to buffer
+            const now = new Date().getTime();
+            sensorDataBuffer.timestamps.push(now);
+            sensorDataBuffer.temperature.push(data.temperature || 0);
+            sensorDataBuffer.ph.push(data.ph || 0);
+            sensorDataBuffer.ec.push(data.ec || 0);
+
+            // Keep only last 20 points
+            if (sensorDataBuffer.timestamps.length > 20) {
+                sensorDataBuffer.timestamps.shift();
+                sensorDataBuffer.temperature.shift();
+                sensorDataBuffer.ph.shift();
+                sensorDataBuffer.ec.shift();
+            }
+
+            // Update chart
+            updateChart();
+
+            // Update freshness
+            document.getElementById('freshnessText').textContent = 'Last updated: just now';
+
+        } catch (error) {
+            console.error('❌ Error fetching data:', error);
+            showOfflineState();
+        }
+    }
+
+    function updateSensorCards(data) {
+        document.getElementById('sensorTemp').textContent = data.temperature ? data.temperature.toFixed(1) : '--';
+        document.getElementById('sensorPH').textContent = data.ph ? data.ph.toFixed(1) : '--';
+        document.getElementById('sensorEC').textContent = data.ec ? data.ec.toFixed(2) : '--';
+        document.getElementById('sensorHumidity').textContent = data.humidity ? data.humidity.toFixed(0) : '--';
+    }
+
+    function updateSummaryCards(data) {
+        document.getElementById('summaryPH').textContent = data.ph ? data.ph.toFixed(1) : '--';
+        document.getElementById('summaryEC').textContent = data.ec ? `${data.ec.toFixed(2)} mS/cm` : '--';
+        document.getElementById('summaryTemp').textContent = data.temperature ? `${data.temperature.toFixed(1)}°C` : '--';
+        document.getElementById('summaryHumidity').textContent = data.humidity ? `${data.humidity.toFixed(0)}%` : '--';
+
+        const npk = data.nitrogen && data.phosphorus && data.potassium
+            ? `${data.nitrogen.toFixed(0)} / ${data.phosphorus.toFixed(0)} / ${data.potassium.toFixed(0)}`
+            : '-- / -- / --';
+        document.getElementById('summaryNPK').textContent = npk;
+    }
+
+    function updateChart() {
+        if (!analyticsChart) return;
+
+        // Prepare series data
+        const tempData = sensorDataBuffer.timestamps.map((time, i) => ({
+            x: time,
+            y: sensorDataBuffer.temperature[i]
+        }));
+
+        const phData = sensorDataBuffer.timestamps.map((time, i) => ({
+            x: time,
+            y: sensorDataBuffer.ph[i]
+        }));
+
+        const ecData = sensorDataBuffer.timestamps.map((time, i) => ({
+            x: time,
+            y: sensorDataBuffer.ec[i]
+        }));
+
+        analyticsChart.updateSeries([
+            { name: 'Temperature (°C)', data: tempData },
+            { name: 'pH', data: phData },
+            { name: 'EC (mS/cm)', data: ecData }
+        ]);
+    }
+
+    function showOfflineState() {
+        const statusBadge = document.getElementById('deviceStatus');
+        if (statusBadge) {
+            statusBadge.className = 'status-badge offline';
+            statusBadge.innerHTML = '<span class="status-dot"></span> Offline';
+        }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('🚀 Initializing Analytics Page...');
+
+        if (currentDeviceId) {
+            document.getElementById('timeRangeFilter').style.display = 'flex';
+            document.getElementById('freshnessIndicator').style.display = 'inline-flex';
+
+            initializeChart();
+            fetchAnalyticsData();
+
+            // Auto-refresh every 3 seconds
+            updateInterval = setInterval(fetchAnalyticsData, 3000);
         }
 
-        setInterval(updateData, 2000);
-        updateData();
+        console.log('✅ Analytics Page Initialized');
+    });
+
+    window.addEventListener('beforeunload', function () {
+        if (updateInterval) clearInterval(updateInterval);
     });
 </script>
 {% endblock extra_javascript %}

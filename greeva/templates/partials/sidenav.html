@@ -42,26 +42,36 @@
 
     <div data-simplebar>
 
-        <!--- Sidenav Menu -->
+        <!--- Sidenav Menu --->
         <ul class="side-nav">
             <li class="side-nav-title">Navigation</li>
 
             <li class="side-nav-item">
-                <a href="{% url 'hydroponics:dashboard' %}" class="side-nav-link">
+                <a href="{% url 'hydroponics:dashboard' %}"
+                    class="side-nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                     <span class="menu-icon"><i class="ti ti-dashboard"></i></span>
                     <span class="menu-text"> Dashboard </span>
                 </a>
             </li>
             <li class="side-nav-item">
-                <a href="{% url 'pages:analytics' %}" class="side-nav-link">
+                <a href="{% url 'pages:analytics' %}"
+                    class="side-nav-link {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
                     <span class="menu-icon"><i class="ti ti-chart-line"></i></span>
                     <span class="menu-text"> Analytics </span>
                 </a>
             </li>
             <li class="side-nav-item">
-                <a href="{% url 'pages:map' %}" class="side-nav-link">
+                <a href="{% url 'pages:map' %}"
+                    class="side-nav-link {% if request.resolver_match.url_name == 'map' %}active{% endif %}">
                     <span class="menu-icon"><i class="ti ti-map-pin"></i></span>
                     <span class="menu-text"> Map </span>
+                </a>
+            </li>
+            <li class="side-nav-item">
+                <a href="{% url 'pages:info' %}"
+                    class="side-nav-link {% if request.resolver_match.url_name == 'info' %}active{% endif %}">
+                    <span class="menu-icon"><i class="ti ti-info-circle"></i></span>
+                    <span class="menu-text"> Info </span>
                 </a>
             </li>
 

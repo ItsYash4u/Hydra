@@ -29,7 +29,7 @@ class UserDevice(models.Model):
     Updated_At = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'UserDevice'
+        db_table = 'userdevice'   # ✅ matches MySQL
         verbose_name = 'User Device'
         verbose_name_plural = 'User Devices'
 
@@ -37,11 +37,9 @@ class UserDevice(models.Model):
         return f"{self.User_ID} ({self.Email_ID})"
 
     def set_password(self, raw_password):
-        """Hash and set password"""
         self.Password = make_password(raw_password)
 
     def check_password(self, raw_password):
-        """Verify password"""
         return check_password(raw_password, self.Password)
 
 
@@ -51,7 +49,7 @@ class Device(models.Model):
     One user can own multiple devices (one-to-many relationship)
     """
     S_No = models.AutoField(primary_key=True, verbose_name="Serial Number")
-    User_ID = models.CharField(max_length=50, verbose_name="User ID")  # Foreign key to UserDevice.User_ID
+    User_ID = models.CharField(max_length=50, verbose_name="User ID")
     Device_ID = models.CharField(max_length=50, unique=True, verbose_name="Device ID")
     Latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
     Longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
@@ -59,7 +57,7 @@ class Device(models.Model):
     Updated_At = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'Device'
+        db_table = 'device'   # ✅ matches MySQL
         verbose_name = 'Device'
         verbose_name_plural = 'Devices'
         indexes = [
@@ -73,37 +71,53 @@ class Device(models.Model):
 
 class SensorValue(models.Model):
     """
-    Sensor Value table - stores sensor readings for each device
-    Each device can have multiple sensor readings (one-to-many relationship)
+    Maps to existing MySQL table sensor_value
+    WITHOUT an auto id column
     """
-    S_No = models.AutoField(primary_key=True, verbose_name="Serial Number")
-    Device_ID = models.CharField(max_length=50, verbose_name="Device ID")  # Foreign key to Device.Device_ID
-    
-    # Sensor readings
-    Temperature = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    pH = models.DecimalField(max_digits=4, decimal_places=2, blank=True, null=True)
-    EC = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True, verbose_name="Electrical Conductivity")
-    Humidity = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    Nitrogen = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
-    Phosphorus = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
-    Potassium = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
-    Light_Hours = models.DecimalField(max_digits=4, decimal_places=2, blank=True, null=True)
-    Moisture = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    
-    # Separate date and time fields as specified
-    Reading_Date = models.DateField(default=timezone.now)
-    Reading_Time = models.TimeField(default=timezone.now)
-    
-    Created_At = models.DateTimeField(auto_now_add=True)
+
+    Device_ID = models.CharField(max_length=50)
+    date = models.DateField(primary_key=True)
+    temperature = models.FloatField(null=True, blank=True)
+    humidity = models.FloatField(null=True, blank=True)
+    pH = models.FloatField(null=True, blank=True)
+    EC = models.FloatField(null=True, blank=True)
+
+    # THIS IS THE CRITICAL LINE
+
 
     class Meta:
-        db_table = 'SensorValue'
-        verbose_name = 'Sensor Value'
-        verbose_name_plural = 'Sensor Values'
+        managed = False
+        db_table = 'sensor_value'
+
+
+class SensorReading(models.Model):
+    """
+    High-frequency sensor data storage for IoT.
+    Supports 5-second updates and historical tracking.
+    """
+    id = models.AutoField(primary_key=True)
+    device_id = models.CharField(max_length=50, db_index=True)
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+    
+    # Sensor Values (Float for precision)
+    temperature = models.FloatField(null=True, blank=True)
+    humidity = models.FloatField(null=True, blank=True)
+    ph = models.FloatField(null=True, blank=True)
+    ec = models.FloatField(null=True, blank=True)
+    tds = models.FloatField(null=True, blank=True)
+    co2 = models.FloatField(null=True, blank=True)
+    light = models.FloatField(null=True, blank=True) # Light Hours or Intensity
+    water_temp = models.FloatField(null=True, blank=True)
+    dissolved_oxygen = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'sensor_reading'
+        app_label = 'hydroponics'
         indexes = [
-            models.Index(fields=['Device_ID']),
-            models.Index(fields=['Reading_Date']),
+            models.Index(fields=['device_id', '-timestamp']),
         ]
+        ordering = ['-timestamp']
 
     def __str__(self):
-        return f"Sensor reading for {self.Device_ID} on {self.Reading_Date} at {self.Reading_Time}"
+        return f"{self.device_id} @ {self.timestamp}"
+

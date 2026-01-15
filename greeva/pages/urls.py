@@ -6,6 +6,7 @@ from .views import (
     services_view,
     analytics_view,
     map_view,
+    info_view,
     devices_list_view,
 )
 
@@ -17,6 +18,7 @@ urlpatterns = [
     path("services/", services_view, name="services"),
     path("analytics/", analytics_view, name="analytics"),
     path("map/", map_view, name="map"),
+    path("info/", info_view, name="info"),
     path("devices/", devices_list_view, name="devices_list"),
     path("<str:template_name>/", dynamic_pages_view, name="dynamic"),
 ]
