@@ -16,6 +16,14 @@ def custom_signup_view(request):
         return redirect('/hydroponics/dashboard/')
     return render(request, 'auth/signup_iit.html')
 
+@ensure_csrf_cookie
+def custom_verify_otp_view(request):
+    """Custom OTP verification page view - IIT Guwahati branded"""
+    if get_current_user(request):
+        return redirect('/hydroponics/dashboard/')
+    
+    email = request.session.get('signup_email', 'your email')
+    return render(request, 'auth/verify_otp_iit.html', {'email': email})
 
 def custom_logout_view(request):
     """Custom logout view that clears session"""

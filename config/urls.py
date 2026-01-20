@@ -6,7 +6,7 @@ from django.urls import include
 from django.urls import path
 from django.views import defaults as default_views
 from django.views.generic import TemplateView
-from greeva.users.auth_views import custom_login_view, custom_signup_view, custom_logout_view
+from greeva.users.auth_views import custom_login_view, custom_signup_view, custom_logout_view, custom_verify_otp_view
 
 urlpatterns = [
     
@@ -23,6 +23,7 @@ urlpatterns = [
     path("auth/login/", custom_login_view, name="custom_login"),
     path("auth/signup/", custom_signup_view, name="custom_signup"),
     path("auth/logout/", custom_logout_view, name="custom_logout"),
+    path("auth/verify-otp/", custom_verify_otp_view, name="custom_verify_otp"),
     # Hydroponics Management System
     path("hydroponics/", include("greeva.hydroponics.urls", namespace="hydroponics")),
     # API URLs

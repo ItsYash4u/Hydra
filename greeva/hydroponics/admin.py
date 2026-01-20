@@ -1,9 +1,9 @@
+
 """
 Admin configuration for custom database models
-Note: Django admin is bypassed for custom authentication
-This is for development/debugging purposes only
 """
 
+from django import forms
 from django.contrib import admin
 from .models import UserDevice, Device, SensorValue
 
@@ -21,15 +21,9 @@ class UserDeviceAdmin(admin.ModelAdmin):
         'Age',
         'Created_At',
     )
-
     search_fields = ('User_ID', 'Email_ID')
     list_filter = ('Role', 'Created_At')
-
-    readonly_fields = (
-        'Created_At',
-        'Updated_At',
-    )
-
+    readonly_fields = ('Created_At', 'Updated_At')
     ordering = ('-Created_At',)
 
 
@@ -40,41 +34,36 @@ class UserDeviceAdmin(admin.ModelAdmin):
 class DeviceAdmin(admin.ModelAdmin):
     list_display = (
         'Device_ID',
-        'User_ID',
+        'user',
         'Latitude',
         'Longitude',
         'Created_At',
     )
-
-    search_fields = ('Device_ID', 'User_ID')
+    search_fields = ('Device_ID', 'user__User_ID')
     list_filter = ('Created_At',)
-
-    readonly_fields = (
-        'Created_At',
-        'Updated_At',
-    )
-
+    readonly_fields = ('Created_At', 'Updated_At')
     ordering = ('-Created_At',)
 
 
-# =========================
-# SensorValue Admin
-# =========================
 @admin.register(SensorValue)
 class SensorValueAdmin(admin.ModelAdmin):
     list_display = (
-        'Device_ID',
+        'device',
+        'date',
         'temperature',
+        'humidity',
         'pH',
         'EC',
-        'humidity',
-        'date',
     )
-
-    search_fields = ('Device_ID',)
-    list_filter = ('date',)
-
+    search_fields = ("device__Device_ID",)
+    list_filter = ("device", "date")
     ordering = ('-date',)
 
-    # No readonly fields because this table is unmanaged / legacy
-    readonly_fields = ()
+    fieldsets = (
+        ('Device Information', {
+            'fields': ('device', 'date')
+        }),
+        ('Sensor Readings', {
+            'fields': ('temperature', 'humidity', 'pH', 'EC')
+        }),
+    )

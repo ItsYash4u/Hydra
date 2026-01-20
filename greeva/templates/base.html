@@ -39,18 +39,18 @@
   {% include "auth/modals.html" %}
   {% endblock modal %}
 
-  {% block extra_javascript %}{% endblock extra_javascript %}
+  <!-- jQuery (required by vendor scripts and app.js) -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <!-- Bootstrap 5 Bundle (REQUIRED for dropdowns) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- jQuery (required by app.js) -->
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  {% block vendor_js %}{% endblock vendor_js %}
 
-  <!-- Bootstrap 5 Bundle (REQUIRED) -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-  <!-- App JS (uses bootstrap + $) -->
+  <!-- App JS (main theme logic) -->
   <script src="{% static 'js/app.js' %}"></script>
 
   <!-- Auth JS -->
@@ -58,6 +58,8 @@
 
   <!-- Global Navigation Enhancement -->
   <script src="{% static 'js/global-navigation.js' %}"></script>
+
+  {% block extra_javascript %}{% endblock extra_javascript %}
 
 </body>
 

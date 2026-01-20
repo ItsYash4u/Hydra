@@ -8,8 +8,19 @@ from django.http import Http404
 # -------------------------
 
 def root_page_view(request):
-    # Always redirect to dashboard (no login required)
-    return redirect('hydroponics:dashboard')
+    """
+    Root page - Show landing page for logged-out users,
+    redirect to dashboard for logged-in users
+    """
+    if request.session.get('user_id'):
+        return redirect('hydroponics:dashboard')
+    return render(request, 'pages/landing.html')
+
+
+def loading_view(request):
+    """Loading animation page shown after login/signup"""
+    return render(request, 'pages/loading.html')
+
 
 
 
@@ -158,7 +169,7 @@ def devices_list_view(request):
             'sensor_id': d.Device_ID,
             'location': f"{d.Latitude}, {d.Longitude}",
             'get_device_type_display': 'Hydroponic System',
-            'status': 'online' if random.choice([True, True, False]) else 'offline' 
+            'status': 'online'  # Always online (no random changes)
         })
         
     context = {

@@ -1,32 +1,36 @@
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models_custom import Device, UserDevice
+from .models_custom import Device, UserDevice, SensorValue
+from .serializers import SensorValueSerializer
 from greeva.users.auth_helpers import get_current_user
 import uuid
+from django.utils import timezone
 
 class AddDeviceAPIView(APIView):
-    permission_classes = [] # We handle auth manually
+    permission_classes = [] 
 
     def post(self, request):
-        """
-        Add a new device for the logged-in user.
-        """
         user = get_current_user(request)
         if not user:
              return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        device_name = request.data.get('device_name') # Not used in model but logic remains
+        device_name = request.data.get('device_name') 
         latitude = request.data.get('latitude', 20.59)
         longitude = request.data.get('longitude', 78.96)
         
+        device_id = request.data.get('device_id')
+        
         try:
-            # Generate unique device ID
-            device_id = f"DEV-{uuid.uuid4().hex[:8].upper()}"
+            if device_id:
+                if Device.objects.filter(Device_ID=device_id).exists():
+                    return Response({'error': f'Device ID {device_id} already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                device_id = f"DEV-{uuid.uuid4().hex[:8].upper()}"
             
-            # Create device
             device = Device.objects.create(
-                User_ID=user.User_ID,
+                user=user,
                 Device_ID=device_id,
                 Latitude=float(latitude),
                 Longitude=float(longitude)
@@ -51,9 +55,6 @@ class GetDevicesAPIView(APIView):
     permission_classes = [] 
 
     def get(self, request):
-        """
-        Get all devices for the logged-in user (or all devices if admin).
-        """
         user = get_current_user(request)
         if not user:
              return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -61,7 +62,7 @@ class GetDevicesAPIView(APIView):
         if user.Role == 'admin':
             devices = Device.objects.all()
         else:
-            devices = Device.objects.filter(User_ID=user.User_ID)
+            devices = Device.objects.filter(user=user)
         
         device_list = []
         for device in devices:
@@ -72,7 +73,7 @@ class GetDevicesAPIView(APIView):
                 'latitude': device.Latitude,
                 'longitude': device.Longitude,
                 'is_active': True,
-                'owner': user.Email_ID # Simplified
+                'owner': user.Email_ID 
             })
         
         return Response({'devices': device_list}, status=status.HTTP_200_OK)
@@ -82,9 +83,6 @@ class PromoteToAdminAPIView(APIView):
     permission_classes = []
 
     def post(self, request):
-        """
-        Promote a user to admin role. Only admins can do this.
-        """
         user = get_current_user(request)
         if not user:
              return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -101,75 +99,52 @@ class PromoteToAdminAPIView(APIView):
             target_user = UserDevice.objects.get(Email_ID=user_email)
             target_user.Role = 'admin'
             target_user.save()
-            
-            return Response({
-                'message': f'{target_user.Email_ID} has been promoted to admin.'
-            }, status=status.HTTP_200_OK)
+            return Response({'message': f'{target_user.Email_ID} has been promoted to admin.'}, status=status.HTTP_200_OK)
             
         except UserDevice.DoesNotExist:
             return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
 
 # ------------------------------------------------------------------------------
-# NEW SENSOR APIS (Step Id: 1)
+# RESTORED SENSOR APIS (Using SensorValue)
 # ------------------------------------------------------------------------------
-from django.conf import settings
-from .serializers import SensorReadingSerializer, SensorIngestSerializer
-from .models import SensorReading
 
 class SensorDataView(APIView):
     """
-    GET API: Returns the latest sensor values.
-    Source of truth for Dashboard cards.
+    GET API: Returns the latest sensor values from SensorValue table.
     """
-    permission_classes = [] # Public for dashboard demo, or use session
+    permission_classes = [] 
 
     def get(self, request):
+        device_id = request.query_params.get('device_id')
+        if not device_id:
+             return Response({'error': 'Device ID is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
-            device_id = request.query_params.get('device_id')
-            
-            # Use SensorValue from Custom DB as primary source (matches Analytics page)
-            from .models_custom import SensorValue
-            
-            qs = SensorValue.objects.all()
-            if device_id:
-                qs = qs.filter(Device_ID=device_id)
-                
-            latest = qs.order_by('-date').first()
+            # Fetch latest from SensorValue
+            qs = SensorValue.objects.filter(device_id=device_id).order_by('-date')
+            latest = qs.first()
             
             if latest:
-                # Manual serialization to match frontend expectations
+                # Map fields to frontend expectations (lowercase keys)
                 data = {
                     'temperature': float(latest.temperature or 0),
                     'humidity': float(latest.humidity or 0),
                     'ph': float(latest.pH or 0),
                     'ec': float(latest.EC or 0),
-                    # Derived/Default values for extended sensors
-                    'tds': float(latest.EC or 0) * 500,
-                    'co2': 600.0, # Simulation/Default
-                    'light': 12.0,
-                    'water_temp': float(latest.temperature or 24) - 2.0,
-                    'dissolved_oxygen': 6.5,
-                    'timestamp': latest.date
+                    'tds': 0, # Not in SensorValue
+                    'co2': 0,
+                    'light': 0,
+                    'water_temp': 0,
+                    'dissolved_oxygen': 0,
+                    'timestamp': f"{latest.date}"
                 }
                 return Response(data)
                 
-            # Fallback to SensorReading if needed (or just return defaults)
-            qs_reading = SensorReading.objects.all()
-            if device_id:
-                qs_reading = qs_reading.filter(device_id=device_id)
-            latest_reading = qs_reading.order_by('-timestamp').first()
-            
-            if latest_reading:
-                serializer = SensorReadingSerializer(latest_reading)
-                return Response(serializer.data)
-                
         except Exception as e:
-            # Log error if needed
             print(f"Error in SensorDataView: {e}")
             pass
             
-        # Graceful empty response so frontend doesn't crash
         return Response({
             'temperature': 0, 'humidity': 0, 'ph': 0, 'ec': 0,
             'light': 0, 'tds': 0, 'co2': 0, 'water_temp': 0,
@@ -178,25 +153,31 @@ class SensorDataView(APIView):
 
 class SensorIngestView(APIView):
     """
-    POST API: Ingest sensor data.
-    Single endpoint for both Dummy (Simulated) and Real devices.
+    POST API: Ingest sensor data into SensorValue.
     """
-    permission_classes = [] # Add token auth later
+    permission_classes = [] 
 
     def post(self, request):
-        data_source = getattr(settings, 'DATA_SOURCE', 'DUMMY')
+        device_id = request.data.get('device_id')
+        if not device_id:
+             return Response({'error': 'device_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+             
+        if not Device.objects.filter(Device_ID=device_id).exists():
+              return Response({'error': f'Device {device_id} is not registered.'}, status=status.HTTP_404_NOT_FOUND)
         
-        # Example: In REAL mode, we might require a strictly registered device
-        # In DUMMY mode, we might auto-accept everything.
+        # Auto-map fields from request to models
+        # Request keys are likely lowercase (temperature), model is Uppercase (Temperature)
+        data = request.data
         
-        serializer = SensorIngestSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                "status": "success", 
-                "source_mode": data_source,
-                "data": serializer.data
-            }, status=status.HTTP_201_CREATED)
-            
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        try:
+            SensorValue.objects.create(
+                device_id=device_id,
+                temperature=data.get('temperature'),
+                humidity=data.get('humidity'),
+                pH=data.get('ph'),
+                EC=data.get('ec'),
+                date=timezone.now().date()
+            )
+            return Response({"status": "success", "message": "Data saved to SensorValue"}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

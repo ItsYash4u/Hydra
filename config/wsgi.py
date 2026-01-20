@@ -19,6 +19,9 @@ import os
 import sys
 from pathlib import Path
 
+import pymysql
+pymysql.install_as_MySQLdb()
+
 from django.core.wsgi import get_wsgi_application
 
 # This allows easy placement of apps within the interior

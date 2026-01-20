@@ -1,8 +1,7 @@
 import random
 import datetime
 from django.core.management.base import BaseCommand
-from greeva.users.models import UserDevice
-from greeva.hydroponics.models import Device, SensorValue
+from greeva.hydroponics.models import UserDevice, Device, SensorValue
 from django.utils import timezone
 
 class Command(BaseCommand):
@@ -55,16 +54,14 @@ class Command(BaseCommand):
     def seed_sensor_values(self, device):
         # Create multiple readings
         for k in range(5):
-            now = timezone.now() - datetime.timedelta(hours=k)
-            SensorValue.objects.create(
-                Device_ID=device,
-                Date=now.date(),
-                Time=now.time(),
-                Temperature=round(random.uniform(20, 30), 1),
-                pH=round(random.uniform(5.5, 7.5), 1),
-                EC=round(random.uniform(1.0, 2.5), 1),
-                Humidity=round(random.uniform(40, 80), 1),
-                Nitrogen=random.uniform(100, 200),
-                Phosphorus=random.uniform(30, 80),
-                Potassium=random.uniform(100, 300)
-            )
+            now = timezone.now() - datetime.timedelta(days=k) # Shift days because date is PK
+            # Check if this date already exists for any device (since date is PK)
+            if not SensorValue.objects.filter(date=now.date()).exists():
+                SensorValue.objects.create(
+                    device=device,
+                    date=now.date(),
+                    temperature=round(random.uniform(20, 30), 1),
+                    pH=round(random.uniform(5.5, 7.5), 1),
+                    EC=round(random.uniform(1.0, 2.5), 1),
+                    humidity=round(random.uniform(40, 80), 1)
+                )

@@ -21,7 +21,8 @@ class UserAdmin(auth_admin.UserAdmin):
     add_form = UserAdminCreationForm
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        (_("Personal info"), {"fields": ("name",)}),
+        (_("Personal info"), {"fields": ("name", "phone_number", "age", "station_name", "user_type")}),
+        (_("Role"), {"fields": ("role",)}),
         (
             _("Permissions"),
             {
@@ -29,25 +30,25 @@ class UserAdmin(auth_admin.UserAdmin):
                     "is_active",
                     "is_staff",
                     "is_superuser",
-                    "groups",
-                    "user_permissions",
                 ),
             },
         ),
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
-    list_display = ["email", "name", "is_superuser"]
-    search_fields = ["name"]
+    list_display = ["email", "name", "role", "is_staff", "is_superuser"]
+    search_fields = ["name", "email"]
     ordering = ["id"]
+    list_filter = ["role", "is_staff", "is_superuser", "is_active"]
     add_fieldsets = (
         (
             None,
             {
                 "classes": ("wide",),
-                "fields": ("email", "password1", "password2"),
+                "fields": ("email", "password1", "password2", "name", "role"),
             },
         ),
     )
+
 
 @admin.register(OTP)
 class OTPAdmin(admin.ModelAdmin):

@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import (
     root_page_view,
+    loading_view,
     dynamic_pages_view,
     measurement_view,
     services_view,
@@ -14,6 +15,7 @@ app_name = "pages"
 
 urlpatterns = [
     path("", root_page_view, name="root"),
+    path("loading/", loading_view, name="loading"),
     path("measurement/", measurement_view, name="measurement"),
     path("services/", services_view, name="services"),
     path("analytics/", analytics_view, name="analytics"),

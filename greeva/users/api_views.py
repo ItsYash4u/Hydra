@@ -89,7 +89,8 @@ class LoginAPIView(APIView):
         request.session['role'] = user.Role
         request.session.save()
         
-        return Response({'message': 'Login successful', 'redirect_url': '/'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Login successful', 'redirect_url': '/loading/'}, status=status.HTTP_200_OK)
+
 
 
 class VerifyOTPAPIView(APIView):
@@ -111,7 +112,7 @@ class VerifyOTPAPIView(APIView):
         # OTP Verified - Create UserDevice
         try:
             # Generate generic User ID if not provided
-            new_user_id = f"USER{random.randint(1000,9999)}"
+            new_user_id = f"USER-{uuid.uuid4().hex[:8].upper()}"
             
             user = UserDevice(
                 User_ID=new_user_id,
@@ -132,7 +133,7 @@ class VerifyOTPAPIView(APIView):
             del request.session['signup_otp']
             del request.session['signup_data']
 
-            return Response({'message': 'Account verified.', 'redirect_url': '/'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Account verified.', 'redirect_url': '/loading/'}, status=status.HTTP_200_OK)
             
         except Exception as e:
             return Response({'error': f'Database error: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -521,24 +521,60 @@ async function fetchSensorStatistics(sensorType) {
 /**
  * Start real-time sensor updates
  */
+/**
+ * Start real-time sensor updates
+ */
 function startSensorUpdates(sensorType, config) {
     sensorUpdateInterval = setInterval(async () => {
         try {
-            // Fetch latest sensor value from API
-            // For now, simulating with random variation
-            const currentCard = document.querySelector(`.sensor-card[data-sensor-type="${sensorType}"]`);
-            if (currentCard) {
-                const currentValue = parseFloat(currentCard.getAttribute('data-sensor-value') || 0);
+            // Get Active Device ID
+            const deviceIdEl = document.getElementById('active-device-id');
+            const deviceId = deviceIdEl ? deviceIdEl.innerText : null;
 
-                // Re-render animation with updated value
+            if (!deviceId) return;
+
+            // Fetch latest sensor value from API
+            const response = await fetch(`/api/devices/sensors/latest/?device_id=${encodeURIComponent(deviceId)}`);
+            const data = await response.json();
+
+            // Map API keys to Sensor Types
+            // Note: API returns lowercase keys (temperature, humidity), UI uses Title Case (Temperature, Humidity)
+            const apiBooking = {
+                'Temperature': 'temperature',
+                'Humidity': 'humidity',
+                'pH': 'ph',
+                'EC': 'ec',
+                'TDS': 'tds',
+                'CO2': 'co2',
+                'Light': 'light',
+                'Water Temp': 'water_temp',
+                'Dissolved Oxygen': 'dissolved_oxygen'
+            };
+
+            const apiKey = apiBooking[sensorType];
+
+            if (apiKey && data[apiKey] !== undefined) {
+                const currentValue = parseFloat(data[apiKey]);
+
+                // Update Modal Content
                 renderSensorAnimation(config.animationType, sensorType, currentValue, config);
 
                 // Update timestamp
                 const timestampElement = document.getElementById('detail-last-updated');
                 if (timestampElement) {
-                    timestampElement.textContent = 'just now';
+                    const timeObj = new Date();
+                    timestampElement.textContent = timeObj.toLocaleTimeString();
+                }
+
+                // Also update the card in background if possible
+                const currentCard = document.querySelector(`.sensor-card[data-sensor-type="${sensorType}"]`);
+                if (currentCard) {
+                    currentCard.setAttribute('data-sensor-value', currentValue);
+                    const valSpan = currentCard.querySelector('.sensor-value');
+                    if (valSpan) valSpan.innerText = currentValue.toFixed(1);
                 }
             }
+
         } catch (error) {
             console.error('Error updating sensor:', error);
         }

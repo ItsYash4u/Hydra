@@ -42,39 +42,8 @@ window.toggleSensor = function (sensorName) {
     localStorage.setItem('hiddenSensors', JSON.stringify(hiddenSensors));
 };
 
-window.openSensorDetail = function (card) {
-    const type = card.getAttribute('data-sensor-name');
-    const value = card.getAttribute('data-sensor-value');
-    // Try to find unit in the card
-    const unitEl = card.querySelector('small.fs-16');
-    const unit = unitEl ? unitEl.innerText.trim() : '';
+// Redundant openSensorDetail removed. Using the enhanced version from dashboard-interactions-enhanced.js
 
-    // Update Modal
-    const titleEl = document.getElementById('detail-sensor-name');
-    if (titleEl) titleEl.textContent = type + ' Details';
-
-    const valEl = document.getElementById('detail-sensor-value');
-    if (valEl) valEl.textContent = parseFloat(value).toFixed(1);
-
-    const unitDisplay = document.getElementById('detail-sensor-unit');
-    if (unitDisplay) unitDisplay.textContent = unit;
-
-    // Mock Stats
-    const v = parseFloat(value);
-    document.getElementById('detail-min').textContent = (v * 0.9).toFixed(1);
-    document.getElementById('detail-avg').textContent = v.toFixed(1);
-    document.getElementById('detail-max').textContent = (v * 1.1).toFixed(1);
-
-    // Render Chart
-    if (window.ApexCharts) renderMiniChart(type, v);
-
-    // Show Modal using Bootstrap API
-    const modalEl = document.getElementById('sensorDetailModal');
-    if (modalEl && window.bootstrap) {
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
-    }
-};
 
 function renderMiniChart(label, currentValue) {
     const chartEl = document.querySelector("#sensor-mini-chart");

@@ -230,9 +230,7 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    // Show OTP modal or redirect
-                    alert('Signup successful! Please check your email for OTP verification.');
-                    // You can redirect to OTP page or show OTP modal here
+                    window.location.href = '/auth/verify-otp/';
                 } else {
                     alert(data.error || 'Signup failed');
                 }
