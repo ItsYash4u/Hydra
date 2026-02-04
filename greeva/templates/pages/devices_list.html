@@ -23,6 +23,9 @@
                     <table class="table table-hover mb-0">
                         <thead class="table-light">
                             <tr>
+                                <th colspan="5">Air Devices</th>
+                            </tr>
+                            <tr>
                                 <th>Device Name</th>
                                 <th>Location</th>
                                 <th>Type</th>
@@ -31,33 +34,82 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for device in devices %}
+                            {% if air_devices %}
+                                {% for device in air_devices %}
+                                <tr>
+                                    <td>
+                                        <h5 class="fs-14 my-1">{{ device.name }}</h5>
+                                        <span class="text-muted fs-12">{{ device.sensor_id }}</span>
+                                    </td>
+                                    <td>{{ device.location }}</td>
+                                    <td>{{ device.device_type_label }}</td>
+                                    <td>
+                                        {% if device.status == 'online' %}
+                                        <i class="ti ti-circle-filled fs-12 text-success"></i> Active
+                                        {% else %}
+                                        <i class="ti ti-circle-filled fs-12 text-danger"></i> Offline
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'pages:analytics' %}?device_id={{ device.id }}"
+                                            class="btn btn-sm btn-primary">
+                                            <i class="ti ti-chart-line me-1"></i>Analytics
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center p-3">No air devices found.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-responsive border-top">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
                             <tr>
-                                <td>
-                                    <h5 class="fs-14 my-1">{{ device.name }}</h5>
-                                    <span class="text-muted fs-12">{{ device.sensor_id }}</span>
-                                </td>
-                                <td>{{ device.location }}</td>
-                                <td>{{ device.get_device_type_display }}</td>
-                                <td>
-                                    {% if device.status == 'online' %}
-                                    <i class="ti ti-circle-filled fs-12 text-success"></i> Active
-                                    {% else %}
-                                    <i class="ti ti-circle-filled fs-12 text-danger"></i> Offline
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <a href="{% url 'pages:analytics' %}?device_id={{ device.id }}"
-                                        class="btn btn-sm btn-primary">
-                                        <i class="ti ti-chart-line me-1"></i>Analytics
-                                    </a>
-                                </td>
+                                <th colspan="5">Water Devices</th>
                             </tr>
-                            {% empty %}
                             <tr>
-                                <td colspan="5" class="text-center p-3">No devices found.</td>
+                                <th>Device Name</th>
+                                <th>Location</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Actions</th>
                             </tr>
-                            {% endfor %}
+                        </thead>
+                        <tbody>
+                            {% if water_devices %}
+                                {% for device in water_devices %}
+                                <tr>
+                                    <td>
+                                        <h5 class="fs-14 my-1">{{ device.name }}</h5>
+                                        <span class="text-muted fs-12">{{ device.sensor_id }}</span>
+                                    </td>
+                                    <td>{{ device.location }}</td>
+                                    <td>{{ device.device_type_label }}</td>
+                                    <td>
+                                        {% if device.status == 'online' %}
+                                        <i class="ti ti-circle-filled fs-12 text-success"></i> Active
+                                        {% else %}
+                                        <i class="ti ti-circle-filled fs-12 text-danger"></i> Offline
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'pages:analytics' %}?device_id={{ device.id }}"
+                                            class="btn btn-sm btn-primary">
+                                            <i class="ti ti-chart-line me-1"></i>Analytics
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center p-3">No water devices found.</td>
+                                </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>

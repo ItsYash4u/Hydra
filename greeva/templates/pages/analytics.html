@@ -552,6 +552,7 @@
     let updateInterval = null;
     let sensorDataBuffer = {
         temperature: [],
+        humidity: [],
         ph: [],
         ec: [],
         timestamps: []
@@ -603,7 +604,7 @@
 
         if (currentDeviceId) {
             // Clear buffer and refetch
-            sensorDataBuffer = { temperature: [], ph: [], ec: [], timestamps: [] };
+            sensorDataBuffer = { temperature: [], humidity: [], ph: [], ec: [], timestamps: [] };
             fetchAnalyticsData();
         }
     }
@@ -621,6 +622,9 @@
         const options = {
             series: [{
                 name: 'Temperature (°C)',
+                data: []
+            }, {
+                name: 'Humidity (%)',
                 data: []
             }, {
                 name: 'pH',
@@ -645,7 +649,7 @@
                 curve: 'smooth',
                 width: 3
             },
-            colors: ['#ef4444', '#3b82f6', '#10b981'],
+            colors: ['#ef4444', '#0dcaf0', '#3b82f6', '#10b981'],
             xaxis: {
                 type: 'datetime',
                 labels: {
@@ -709,6 +713,7 @@
             const now = new Date().getTime();
             sensorDataBuffer.timestamps.push(now);
             sensorDataBuffer.temperature.push(data.temperature || 0);
+            sensorDataBuffer.humidity.push(data.humidity || 0);
             sensorDataBuffer.ph.push(data.ph || 0);
             sensorDataBuffer.ec.push(data.ec || 0);
 
@@ -716,6 +721,7 @@
             if (sensorDataBuffer.timestamps.length > 20) {
                 sensorDataBuffer.timestamps.shift();
                 sensorDataBuffer.temperature.shift();
+                sensorDataBuffer.humidity.shift();
                 sensorDataBuffer.ph.shift();
                 sensorDataBuffer.ec.shift();
             }
@@ -760,6 +766,11 @@
             y: sensorDataBuffer.temperature[i]
         }));
 
+        const humidityData = sensorDataBuffer.timestamps.map((time, i) => ({
+            x: time,
+            y: sensorDataBuffer.humidity[i]
+        }));
+
         const phData = sensorDataBuffer.timestamps.map((time, i) => ({
             x: time,
             y: sensorDataBuffer.ph[i]
@@ -772,6 +783,7 @@
 
         analyticsChart.updateSeries([
             { name: 'Temperature (°C)', data: tempData },
+            { name: 'Humidity (%)', data: humidityData },
             { name: 'pH', data: phData },
             { name: 'EC (mS/cm)', data: ecData }
         ]);

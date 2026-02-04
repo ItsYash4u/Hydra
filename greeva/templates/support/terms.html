@@ -1,0 +1,38 @@
+{% extends 'vertical.html' %}
+
+{% block title %}Terms & Conditions{% endblock %}
+
+{% block page_title %}
+{% include 'partials/page-title.html' with title="Terms & Conditions" %}
+{% endblock page_title %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="header-title">Terms & Conditions</h4>
+                <p class="text-muted font-13 mb-4">Last Updated: January 2026</p>
+
+                <hr>
+
+                <h5>1. Introduction</h5>
+                <p>Welcome to Smart IOT Hydroponics. By using our platform, you agree to these terms.</p>
+
+                <h5>2. Device Usage</h5>
+                <p>You are responsible for the activity occurring on your devices. Do not tamper with the sensors or
+                    attempt to reverse engineer the communication protocol.</p>
+
+                <h5>3. User Accounts</h5>
+                <p>You must provide accurate information during registration. You are responsible for maintaining the
+                    confidentiality of your account credentials.</p>
+
+                <h5>4. Limitation of Liability</h5>
+                <p>We are not liable for any damages resulting from the use or inability to use our services, including
+                    crop failure or data loss.</p>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

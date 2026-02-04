@@ -119,6 +119,7 @@ class VerifyOTPAPIView(APIView):
                 Email_ID=signup_data['email'],
                 Age=signup_data.get('age'),
                 Phone=signup_data.get('phone'),
+                Name=signup_data.get('name') or None,
                 Role='user' # Default role
             )
             user.set_password(signup_data['password'])

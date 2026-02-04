@@ -62,7 +62,7 @@ def analytics_view(request):
         devices.append({
             'id': d.Device_ID,
             'device_id': d.Device_ID,
-            'name': f"Unit {d.Device_ID}",
+            'name': d.Device_Name or f"Unit {d.Device_ID}",
             'latitude': d.Latitude,
             'longitude': d.Longitude,
         })
@@ -107,10 +107,10 @@ def map_view(request):
     for device in devices_qs:
         # Get owner info
         try:
-            owner = UserDevice.objects.get(User_ID=device.User_ID)
+            owner = UserDevice.objects.get(User_ID=device.user_id)
             owner_name = owner.Email_ID.split('@')[0].title()
         except UserDevice.DoesNotExist:
-            owner_name = device.User_ID
+            owner_name = device.user_id
         
         map_points.append({
             'device_id': device.Device_ID,
@@ -156,24 +156,33 @@ def devices_list_view(request):
     View for displaying the full list of all registered devices.
     """
     from greeva.hydroponics.models_custom import Device
-    import random
+    import json
     
     # Fetch all devices
     devices_qs = Device.objects.all()
     
     devices = []
     for d in devices_qs:
+        try:
+            selected_sensors = json.loads(d.Device_Sensors) if d.Device_Sensors else []
+        except (TypeError, ValueError):
+            selected_sensors = []
         devices.append({
             'id': d.Device_ID,
-            'name': f"Unit {d.Device_ID}",
+            'name': d.Device_Name or d.Device_ID,
+            'device_name': d.Device_Name or d.Device_ID,
             'sensor_id': d.Device_ID,
             'location': f"{d.Latitude}, {d.Longitude}",
-            'get_device_type_display': 'Hydroponic System',
-            'status': 'online'  # Always online (no random changes)
+            'device_type': d.Device_Type,
+            'device_type_label': d.get_Device_Type_display(),
+            'device_sensors': selected_sensors,
+            'status': 'online'
         })
         
     context = {
         'devices': devices,
+        'air_devices': [d for d in devices if d.get('device_type') == 'AIR'],
+        'water_devices': [d for d in devices if d.get('device_type') == 'WATER'],
         'total_devices': len(devices),
         'online_devices': len([d for d in devices if d['status'] == 'online']),
         'offline_devices': len([d for d in devices if d['status'] == 'offline']),

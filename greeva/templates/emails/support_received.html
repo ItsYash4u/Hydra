@@ -1,0 +1,30 @@
+{% extends 'emails/base_email.html' %}
+
+{% block content %}
+<h2 style="margin: 0 0 20px 0; color: #333; font-size: 20px;">We've Received Your Message</h2>
+
+<p style="margin: 0 0 15px 0; color: #555;">
+    Hello {{ name }},
+</p>
+
+<p style="margin: 0 0 15px 0; color: #555;">
+    Thank you for contacting <strong>Smart IOT IITG Support</strong>. This is an automated acknowledgement to confirm we
+    have received your inquiry.
+</p>
+
+<div style="background-color: #f8f9fa; border-left: 4px solid #1976d2; padding: 15px; margin: 20px 0;">
+    <p style="margin: 0; color: #666; font-size: 14px;">
+        <strong>Reference ID:</strong> #{{ ticket_id }}<br>
+        <strong>Subject:</strong> {{ subject }}
+    </p>
+</div>
+
+<p style="margin: 0 0 20px 0; color: #555;">
+    Our team will review your request and get back to you as soon as possible.
+</p>
+
+<p style="margin: 0 0 0 0; color: #555;">
+    Best Regards,<br>
+    <strong>Smart IOT Support Team</strong>
+</p>
+{% endblock %}

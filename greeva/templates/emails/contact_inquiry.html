@@ -1,0 +1,60 @@
+{% extends 'emails/base_email.html' %}
+
+{% block content %}
+<div style="text-align: center; margin-bottom: 25px;">
+    <div style="display: inline-block; background-color: #e3f2fd; border-radius: 50%; padding: 12px;">
+        <span style="font-size: 30px; color: #1565c0; line-height: 1;">✉</span>
+    </div>
+</div>
+
+<h2 style="margin: 0 0 20px 0; color: #333; font-size: 20px; text-align: center;">New Contact Inquiry</h2>
+
+<p style="margin: 0 0 25px 0; color: #555; text-align: center;">
+    You have received a new message via the <strong>Smart IOT IITG</strong> contact form.
+</p>
+
+<table width="100%" cellpadding="0" cellspacing="0"
+    style="background-color: #f9f9f9; border-radius: 8px; border: 1px solid #eee; margin-bottom: 25px;">
+    <tr>
+        <td style="padding: 15px; border-bottom: 1px solid #eee;">
+            <strong
+                style="color: #333; display: block; margin-bottom: 4px; font-size: 13px; text-transform: uppercase;">From</strong>
+            <span style="color: #555; font-size: 16px;">{{ name }}</span>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 15px; border-bottom: 1px solid #eee;">
+            <strong
+                style="color: #333; display: block; margin-bottom: 4px; font-size: 13px; text-transform: uppercase;">Email</strong>
+            <a href="mailto:{{ email }}" style="color: #2e7d32; text-decoration: none; font-size: 16px;">{{ email }}</a>
+        </td>
+    </tr>
+    {% if phone %}
+    <tr>
+        <td style="padding: 15px; border-bottom: 1px solid #eee;">
+            <strong
+                style="color: #333; display: block; margin-bottom: 4px; font-size: 13px; text-transform: uppercase;">Phone</strong>
+            <span style="color: #555; font-size: 16px;">{{ phone }}</span>
+        </td>
+    </tr>
+    {% endif %}
+    <tr>
+        <td style="padding: 15px;">
+            <strong
+                style="color: #333; display: block; margin-bottom: 8px; font-size: 13px; text-transform: uppercase;">Message</strong>
+            <div style="color: #444; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">{{ message }}</div>
+        </td>
+    </tr>
+</table>
+
+<div style="text-align: center; margin-top: 30px;">
+    <a href="mailto:{{ email }}?subject=Re: Inquiry from {{ name }}"
+        style="background-color: #2e7d32; color: #ffffff; text-decoration: none; padding: 12px 25px; border-radius: 4px; font-weight: bold; font-size: 14px; display: inline-block;">
+        Reply to {{ name }}
+    </a>
+</div>
+
+<p style="margin: 30px 0 0 0; color: #999; font-size: 12px; text-align: center;">
+    Received at {{ timestamp|default:"now" }}
+</p>
+{% endblock %}

@@ -340,6 +340,21 @@
     </div>
 
 
+    <!-- Sensor Reading History -->
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="header-title mb-0">Sensor Reading History</h4>
+                    <p class="text-muted mb-0">All readings in stack format (newest first)</p>
+                </div>
+                <div class="card-body">
+                    <div id="sensor-history-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <!-- Device List -->
         <div class="col-xl-12">
@@ -350,11 +365,9 @@
                         <p class="text-muted mb-0 small">Manage your IoT devices</p>
                     </div>
                     <div class="d-flex gap-2">
-                        {% if request.session.role == 'admin' %}
                         <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addDeviceModal">
                             <i class="ti ti-plus me-1"></i>Add Device
                         </button>
-                        {% endif %}
                         <a href="{% url 'pages:devices_list' %}" class="btn btn-sm btn-outline-primary">
                             <i class="ti ti-list me-1"></i>View All Devices
                         </a>
@@ -365,6 +378,9 @@
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
+                                    <th colspan="5">Air Devices</th>
+                                </tr>
+                                <tr>
                                     <th>Device Name</th>
                                     <th>Location</th>
                                     <th>Type</th>
@@ -373,30 +389,84 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for device in devices|slice:":5" %}
-                                <tr class="device-row" data-device-id="{{ device.id }}"
-                                    data-device-name="{{ device.name }}" style="cursor: pointer;">
-                                    <td>
-                                        <h5 class="fs-14 my-1">{{ device.name }}</h5>
-                                        <span class="text-muted fs-12">{{ device.sensor_id }}</span>
-                                    </td>
-                                    <td>{{ device.location }}</td>
-                                    <td>{{ device.get_device_type_display }}</td>
-                                    <td>
-                                        {% if device.status == 'online' %}
-                                        <i class="ti ti-circle-filled fs-12 text-success"></i> Active
-                                        {% else %}
-                                        <i class="ti ti-circle-filled fs-12 text-danger"></i> Offline
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <a href="{% url 'pages:analytics' %}?device_id={{ device.id }}"
-                                            class="btn btn-sm btn-primary">
-                                            <i class="ti ti-chart-line me-1"></i>View Analytics
-                                        </a>
-                                    </td>
+                                {% if air_devices %}
+                                    {% for device in air_devices %}
+                                    <tr class="device-row" data-device-id="{{ device.id }}"
+                                        data-device-name="{{ device.name }}" style="cursor: pointer;">
+                                        <td>
+                                            <h5 class="fs-14 my-1">{{ device.name }}</h5>
+                                            <span class="text-muted fs-12">{{ device.sensor_id }}</span>
+                                        </td>
+                                        <td>{{ device.location }}</td>
+                                        <td>{{ device.device_type_label }}</td>
+                                        <td>
+                                            {% if device.status == 'online' %}
+                                            <i class="ti ti-circle-filled fs-12 text-success"></i> Active
+                                            {% else %}
+                                            <i class="ti ti-circle-filled fs-12 text-danger"></i> Offline
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'pages:analytics' %}?device_id={{ device.id }}"
+                                                class="btn btn-sm btn-primary">
+                                                <i class="ti ti-chart-line me-1"></i>View Analytics
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">No air devices yet.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-responsive border-top">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th colspan="5">Water Devices</th>
                                 </tr>
-                                {% endfor %}
+                                <tr>
+                                    <th>Device Name</th>
+                                    <th>Location</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if water_devices %}
+                                    {% for device in water_devices %}
+                                    <tr class="device-row" data-device-id="{{ device.id }}"
+                                        data-device-name="{{ device.name }}" style="cursor: pointer;">
+                                        <td>
+                                            <h5 class="fs-14 my-1">{{ device.name }}</h5>
+                                            <span class="text-muted fs-12">{{ device.sensor_id }}</span>
+                                        </td>
+                                        <td>{{ device.location }}</td>
+                                        <td>{{ device.device_type_label }}</td>
+                                        <td>
+                                            {% if device.status == 'online' %}
+                                            <i class="ti ti-circle-filled fs-12 text-success"></i> Active
+                                            {% else %}
+                                            <i class="ti ti-circle-filled fs-12 text-danger"></i> Offline
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'pages:analytics' %}?device_id={{ device.id }}"
+                                                class="btn btn-sm btn-primary">
+                                                <i class="ti ti-chart-line me-1"></i>View Analytics
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">No water devices yet.</td>
+                                    </tr>
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
@@ -1061,6 +1131,9 @@
 <!-- Sensor Animation Library (MUST load first) -->
 <script src="{% static 'js/sensor-animations.js' %}"></script>
 
+<!-- Sensor Reading History -->
+<script src="{% static 'js/sensor-history.js' %}"></script>
+
 <!-- Enhanced Dashboard Interactions (Sensor Customization & Detail Popups) -->
 <script src="{% static 'js/dashboard-interactions-enhanced.js' %}"></script>
 
@@ -1182,9 +1255,21 @@
     });
 </script>
 
+<!-- Sensor History Init -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const deviceIdEl = document.getElementById('active-device-id');
+        const deviceId = deviceIdEl ? deviceIdEl.innerText : null;
+
+        if (deviceId && window.SensorHistoryManager) {
+            window.SensorHistoryManager.displayHistory(deviceId, 'sensor-history-container');
+        }
+    });
+</script>
+
 <!-- Add Device Modal -->
 <div class="modal fade" id="addDeviceModal" tabindex="-1" aria-labelledby="addDeviceModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title" id="addDeviceModalLabel">
@@ -1194,48 +1279,118 @@
                     aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div id="addDeviceError" class="alert alert-danger d-none"></div>
                 <form id="addDeviceForm">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label for="deviceName" class="form-label">Device Name <span
-                                class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="deviceName" name="device_name" required
-                            placeholder="e.g., Greenhouse 1">
+                        <label for="deviceNameInput" class="form-label">Device Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="deviceNameInput" placeholder="e.g., Greenhouse A" required>
                     </div>
                     <div class="mb-3">
-                        <label for="deviceLocation" class="form-label">Location <span
-                                class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="deviceLocation" name="location" required
-                            placeholder="e.g., IIT Guwahati, Assam">
-                    </div>
-                    <div class="mb-3">
-                        <label for="deviceType" class="form-label">Device Type <span
-                                class="text-danger">*</span></label>
-                        <select class="form-select" id="deviceType" name="device_type" required>
-                            <option value="">Select Type</option>
-                            <option value="hydroponic">Hydroponic System</option>
-                            <option value="greenhouse">Greenhouse</option>
-                            <option value="indoor_farm">Indoor Farm</option>
-                            <option value="aquaponic">Aquaponic System</option>
+                        <label for="deviceTypeSelect" class="form-label">Device Type <span class="text-danger">*</span></label>
+                        <select class="form-select" id="deviceTypeSelect" required>
+                            <option value="">Select device type</option>
+                            <option value="AIR">Air Sensor Device</option>
+                            <option value="WATER">Water Sensor Device</option>
                         </select>
                     </div>
+
                     <div class="mb-3">
-                        <label for="sensorId" class="form-label">Sensor ID</label>
-                        <input type="text" class="form-control" id="sensorId" name="sensor_id"
-                            placeholder="e.g., SENS-001 (Optional)">
-                        <small class="text-muted">Leave blank to auto-generate</small>
+                        <label class="form-label">Select Sensors <span class="text-danger">*</span></label>
+                        <div id="sensorGroupAir" class="row g-2">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input sensor-checkbox" type="checkbox" value="temperature" id="sensorTemperature">
+                                    <label class="form-check-label" for="sensorTemperature">Temperature</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input sensor-checkbox" type="checkbox" value="humidity" id="sensorHumidity">
+                                    <label class="form-check-label" for="sensorHumidity">Humidity</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input sensor-checkbox" type="checkbox" value="co2" id="sensorCO2">
+                                    <label class="form-check-label" for="sensorCO2">CO2</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="sensorGroupWater" class="row g-2 d-none">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input sensor-checkbox" type="checkbox" value="ph" id="sensorPH">
+                                    <label class="form-check-label" for="sensorPH">pH</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input sensor-checkbox" type="checkbox" value="ec" id="sensorEC">
+                                    <label class="form-check-label" for="sensorEC">EC</label>
+                                </div>
+                            </div>
+                        </div>
+                        <small class="text-muted">Unselected sensors will be saved as 0 or null.</small>
                     </div>
-                    <div class="alert alert-info d-flex align-items-start">
-                        <i class="ti ti-info-circle me-2 mt-1"></i>
-                        <small>The device will be registered under your account and will appear in your dashboard once
-                            activated.</small>
+
+                    <div class="mb-3">
+                        <label class="form-label">Location Mode <span class="text-danger">*</span></label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="locationMode" id="locModeCurrent" value="current" checked>
+                                <label class="form-check-label" for="locModeCurrent">Use Current Location</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="locationMode" id="locModeManual" value="manual">
+                                <label class="form-check-label" for="locModeManual">Enter Manually</label>
+                            </div>
+                        </div>
                     </div>
+
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="detectLocationBtn">
+                            <i class="ti ti-map-pin me-1"></i>Use Current Location
+                        </button>
+                        <small class="text-muted ms-2" id="detectStatus"></small>
+                    </div>
+
+                    <div id="manualLocationFields" class="row g-2 d-none">
+                        <div class="col-md-4">
+                            <label for="countryInput" class="form-label">Country</label>
+                            <input type="text" class="form-control" id="countryInput" list="countryList" placeholder="Country">
+                            <datalist id="countryList">
+                                <option value="India"></option>
+                                <option value="United States"></option>
+                                <option value="United Kingdom"></option>
+                                <option value="Canada"></option>
+                                <option value="Australia"></option>
+                            </datalist>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="stateInput" class="form-label">State</label>
+                            <input type="text" class="form-control" id="stateInput" placeholder="State">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="districtInput" class="form-label">District</label>
+                            <input type="text" class="form-control" id="districtInput" placeholder="District">
+                        </div>
+                        <div class="col-12">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="resolveManualBtn">
+                                Resolve Location
+                            </button>
+                            <small class="text-muted ms-2" id="manualResolveStatus"></small>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="latitudeInput">
+                    <input type="hidden" id="longitudeInput">
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success" onclick="submitAddDevice()">
-                    <i class="ti ti-check me-1"></i>Add Device
+                <button type="button" class="btn btn-success" id="saveDeviceBtn">
+                    <i class="ti ti-check me-1"></i>Save Device
                 </button>
             </div>
         </div>
@@ -1243,48 +1398,189 @@
 </div>
 
 <script>
-    function submitAddDevice() {
-        const form = document.getElementById('addDeviceForm');
-        const formData = new FormData(form);
-
-        // Show loading state
-        const submitBtn = event.target;
-        const originalText = submitBtn.innerHTML;
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Adding...';
-
-        fetch('/hydroponics/add-device/', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-            },
-            body: formData
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Close modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('addDeviceModal'));
-                    modal.hide();
-
-                    // Show success message
-                    alert('Device added successfully!');
-
-                    // Reload page to show new device
-                    window.location.reload();
-                } else {
-                    alert('Error: ' + (data.error || 'Failed to add device'));
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalText;
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while adding the device');
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
-            });
+            }
+        }
+        return cookieValue;
     }
+
+    const addDeviceModal = document.getElementById('addDeviceModal');
+    const deviceTypeSelect = document.getElementById('deviceTypeSelect');
+    const sensorGroupAir = document.getElementById('sensorGroupAir');
+    const sensorGroupWater = document.getElementById('sensorGroupWater');
+    const detectLocationBtn = document.getElementById('detectLocationBtn');
+    const resolveManualBtn = document.getElementById('resolveManualBtn');
+    const manualLocationFields = document.getElementById('manualLocationFields');
+    const locModeCurrent = document.getElementById('locModeCurrent');
+    const locModeManual = document.getElementById('locModeManual');
+
+    function updateSensorGroups() {
+        const type = deviceTypeSelect.value;
+        if (type === 'AIR') {
+            sensorGroupAir.classList.remove('d-none');
+            sensorGroupWater.classList.add('d-none');
+            sensorGroupWater.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        } else if (type === 'WATER') {
+            sensorGroupWater.classList.remove('d-none');
+            sensorGroupAir.classList.add('d-none');
+            sensorGroupAir.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        } else {
+            sensorGroupAir.classList.remove('d-none');
+            sensorGroupWater.classList.add('d-none');
+        }
+    }
+
+    function setLocationMode(mode) {
+        if (mode === 'manual') {
+            manualLocationFields.classList.remove('d-none');
+        } else {
+            manualLocationFields.classList.add('d-none');
+        }
+    }
+
+    deviceTypeSelect.addEventListener('change', updateSensorGroups);
+    locModeCurrent.addEventListener('change', () => setLocationMode('current'));
+    locModeManual.addEventListener('change', () => setLocationMode('manual'));
+
+    detectLocationBtn.addEventListener('click', async () => {
+        const statusEl = document.getElementById('detectStatus');
+        statusEl.textContent = 'Detecting...';
+        if (!navigator.geolocation) {
+            statusEl.textContent = 'Geolocation not supported.';
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            document.getElementById('latitudeInput').value = lat;
+            document.getElementById('longitudeInput').value = lon;
+            statusEl.textContent = 'Location detected.';
+
+            try {
+                const res = await fetch('/api/devices/location/reverse/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ latitude: lat, longitude: lon })
+                });
+                const data = await res.json();
+                if (data && data.address) {
+                    document.getElementById('countryInput').value = data.address.country || '';
+                    document.getElementById('stateInput').value = data.address.state || '';
+                    document.getElementById('districtInput').value = data.address.district || '';
+                }
+            } catch (e) {
+                console.error('Reverse geocode failed', e);
+            }
+        }, () => {
+            statusEl.textContent = 'Permission denied or unavailable.';
+        });
+    });
+
+    resolveManualBtn.addEventListener('click', async () => {
+        const statusEl = document.getElementById('manualResolveStatus');
+        statusEl.textContent = 'Resolving...';
+        const country = document.getElementById('countryInput').value.trim();
+        const state = document.getElementById('stateInput').value.trim();
+        const district = document.getElementById('districtInput').value.trim();
+        try {
+            const res = await fetch('/api/devices/location/forward/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ country, state, district })
+            });
+            const data = await res.json();
+            if (data && data.latitude && data.longitude) {
+                document.getElementById('latitudeInput').value = data.latitude;
+                document.getElementById('longitudeInput').value = data.longitude;
+                statusEl.textContent = 'Location resolved.';
+            } else {
+                statusEl.textContent = data.error || 'Unable to resolve.';
+            }
+        } catch (e) {
+            statusEl.textContent = 'Error resolving location.';
+        }
+    });
+
+    document.getElementById('saveDeviceBtn').addEventListener('click', async () => {
+        const errorDiv = document.getElementById('addDeviceError');
+        errorDiv.classList.add('d-none');
+        const deviceName = document.getElementById('deviceNameInput').value.trim();
+        const deviceType = deviceTypeSelect.value;
+        const sensors = Array.from(document.querySelectorAll('.sensor-checkbox:checked')).map(cb => cb.value);
+        const locationMode = document.querySelector('input[name="locationMode"]:checked').value;
+        const latitude = document.getElementById('latitudeInput').value;
+        const longitude = document.getElementById('longitudeInput').value;
+        const country = document.getElementById('countryInput').value.trim();
+        const state = document.getElementById('stateInput').value.trim();
+        const district = document.getElementById('districtInput').value.trim();
+
+        if (!deviceName || !deviceType) {
+            errorDiv.textContent = 'Device name and type are required.';
+            errorDiv.classList.remove('d-none');
+            return;
+        }
+        if (!sensors.length) {
+            errorDiv.textContent = 'Please select at least one sensor.';
+            errorDiv.classList.remove('d-none');
+            return;
+        }
+
+        const payload = {
+            device_name: deviceName,
+            device_type: deviceType,
+            device_sensors: sensors,
+            location_mode: locationMode,
+            latitude: latitude || null,
+            longitude: longitude || null,
+            country,
+            state,
+            district
+        };
+
+        try {
+            const res = await fetch('/api/devices/add-device/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                const msg = data.error || (data.device_sensors && data.device_sensors[0]) ||
+                    (data.non_field_errors && data.non_field_errors[0]) || 'Failed to add device';
+                errorDiv.textContent = msg;
+                errorDiv.classList.remove('d-none');
+                return;
+            }
+
+            const modal = bootstrap.Modal.getInstance(addDeviceModal);
+            modal.hide();
+            window.location.reload();
+        } catch (e) {
+            errorDiv.textContent = 'An error occurred while saving device';
+            errorDiv.classList.remove('d-none');
+        }
+    });
 </script>
 
 <script src="{% static 'js/dashboard-init.js' %}"></script>

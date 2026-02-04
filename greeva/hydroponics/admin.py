@@ -34,36 +34,41 @@ class UserDeviceAdmin(admin.ModelAdmin):
 class DeviceAdmin(admin.ModelAdmin):
     list_display = (
         'Device_ID',
+        'Device_Name',
+        'Device_Type',
         'user',
+        'Registration_Status',
+        'Registered_At',
         'Latitude',
         'Longitude',
         'Created_At',
     )
-    search_fields = ('Device_ID', 'user__User_ID')
-    list_filter = ('Created_At',)
-    readonly_fields = ('Created_At', 'Updated_At')
+    search_fields = ('Device_ID', 'Device_Name', 'user__User_ID')
+    list_filter = ('Device_Type', 'Registration_Status', 'Created_At')
+    readonly_fields = ('Created_At', 'Updated_At', 'Registered_At')
     ordering = ('-Created_At',)
 
 
 @admin.register(SensorValue)
 class SensorValueAdmin(admin.ModelAdmin):
     list_display = (
-        'device',
+        'device_id',
         'date',
         'temperature',
         'humidity',
         'pH',
         'EC',
+        'CO2',
     )
-    search_fields = ("device__Device_ID",)
-    list_filter = ("device", "date")
+    search_fields = ("device_id",)
+    list_filter = ("date",)
     ordering = ('-date',)
 
     fieldsets = (
         ('Device Information', {
-            'fields': ('device', 'date')
+            'fields': ('device_id', 'date')
         }),
         ('Sensor Readings', {
-            'fields': ('temperature', 'humidity', 'pH', 'EC')
+            'fields': ('temperature', 'humidity', 'pH', 'EC', 'CO2')
         }),
     )

@@ -1,0 +1,38 @@
+{% extends 'vertical.html' %}
+
+{% block title %}Privacy Policy{% endblock %}
+
+{% block page_title %}
+{% include 'partials/page-title.html' with title="Privacy Policy" %}
+{% endblock page_title %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="header-title">Privacy Policy</h4>
+                <p class="text-muted font-13 mb-4">Last Updated: January 2026</p>
+
+                <hr>
+
+                <h5>1. Data Collection</h5>
+                <p>We collect device sensor data (pH, EC, Temperature, etc.) and personal information provided during
+                    registration (Name, Email, Phone).</p>
+
+                <h5>2. Data Usage</h5>
+                <p>Your data is used to provide real-time monitoring and analytics for your hydroponic systems. We may
+                    use aggregated, anonymized data for system improvement.</p>
+
+                <h5>3. Data Security</h5>
+                <p>We implement industry-standard security measures to protect your data. Access is restricted based on
+                    user roles.</p>
+
+                <h5>4. Contact</h5>
+                <p>If you have questions about this policy, please contact us via the Support page.</p>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

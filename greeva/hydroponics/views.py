@@ -5,91 +5,121 @@ Hydroponics Views - Connected to Custom Database Table
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.utils import timezone
-import random
 import json
 
-from .models_custom import Device, SensorValue
+from .models_custom import Device, SensorValue, UserDevice
 from greeva.users.auth_helpers import custom_login_required, get_current_user
 
 
+@custom_login_required
 def dashboard_view(request):
     """
     Main dashboard view using Custom Database
-    Public dashboard (no login required)
+    - ADMIN: Shows all devices
+    - USER: Shows only devices owned by the logged-in user
     """
-
-    devices_qs = Device.objects.all().order_by('Device_ID')
-    
-    # Get current user for display
     current_user = get_current_user(request)
-    display_name = current_user.Email_ID if current_user else 'Guest'
+    if not current_user:
+        return redirect('/auth/login/')
+
+    role = request.session.get('role', 'user')
+    is_admin = (role == 'admin')
+
+    if is_admin:
+        devices_qs = Device.objects.all().order_by('-Created_At')
+    else:
+        devices_qs = Device.objects.filter(user=current_user).order_by('-Created_At')
+
+    search_query = request.GET.get('q')
+    if search_query:
+        devices_qs = devices_qs.filter(Device_ID__icontains=search_query)
 
     devices = []
     for d in devices_qs:
+        try:
+            selected_sensors = json.loads(d.Device_Sensors) if d.Device_Sensors else []
+        except (TypeError, ValueError):
+            selected_sensors = []
+        location_text = (
+            f"{d.Latitude}, {d.Longitude}"
+            if d.Latitude is not None and d.Longitude is not None
+            else "-"
+        )
         devices.append({
             'id': d.Device_ID,
-            'name': f"Unit {d.Device_ID}",
+            's_no': d.S_No,
+            'name': d.Device_Name or d.Device_ID,
+            'device_name': d.Device_Name or d.Device_ID,
             'sensor_id': d.Device_ID,
-            'location': f"{d.Latitude}, {d.Longitude}",
-            'get_device_type_display': 'Hydroponic System',
-            'status': 'online',  # Always online (no random changes)
+            'location': location_text,
+            'latitude': float(d.Latitude) if d.Latitude else 20.59,
+            'longitude': float(d.Longitude) if d.Longitude else 78.96,
+            'device_type': d.Device_Type,
+            'device_type_label': d.get_Device_Type_display(),
+            'device_sensors': selected_sensors,
+            'status': 'online',
         })
 
     total_devices = len(devices)
-    online_devices = len([d for d in devices if d['status'] == 'online'])
-    offline_devices = total_devices - online_devices
+    online_devices = total_devices
+    offline_devices = 0
 
     first_device = devices[0] if devices else None
     latest_readings = {}
 
+    base_readings = {
+        'Temperature': {'value': 0, 'timestamp': timezone.now()},
+        'Humidity': {'value': 0, 'timestamp': timezone.now()},
+        'pH': {'value': 0, 'timestamp': timezone.now()},
+        'EC': {'value': 0, 'timestamp': timezone.now()},
+        'CO2': {'value': 0, 'timestamp': timezone.now()},
+    }
+
     if first_device:
+        selected = set(first_device.get('device_sensors') or [])
+        if not selected:
+            selected = {'temperature', 'humidity', 'ph', 'ec', 'co2'}
         reading = (
             SensorValue.objects
-            .filter(device_id=first_device['id'])
-            .order_by('-date')   # ✅ ONLY REAL COLUMN
+            .filter(device_id=str(first_device['id']))
+            .order_by('-date')
             .first()
         )
 
         if reading:
-            latest_readings = {
-                'Temperature': {'value': reading.temperature, 'timestamp': timezone.now()},
-                'Humidity': {'value': reading.humidity, 'timestamp': timezone.now()},
-                'pH': {'value': reading.pH, 'timestamp': timezone.now()},
-                'EC': {'value': reading.EC, 'timestamp': timezone.now()},
-                'Water Temp': {
-                    'value': float(reading.temperature or 24) - 2.5,
-                    'timestamp': timezone.now()
-                },
-                'Dissolved Oxygen': {
-                    'value': 6.5 + random.random(),
-                    'timestamp': timezone.now()
-                },
-                'TDS': {
-                    'value': float(reading.EC or 1.2) * 500,
-                    'timestamp': timezone.now()
-                },
-                'CO2': {
-                    'value': 600 + random.randint(-50, 50),
-                    'timestamp': timezone.now()
-                },
-            }
+            latest_readings = dict(base_readings)
+            latest_readings['Temperature'] = {'value': reading.temperature if 'temperature' in selected and reading.temperature is not None else 0, 'timestamp': reading.date}
+            latest_readings['Humidity'] = {'value': reading.humidity if 'humidity' in selected and reading.humidity is not None else 0, 'timestamp': reading.date}
+            latest_readings['pH'] = {'value': reading.pH if 'ph' in selected and reading.pH is not None else 0, 'timestamp': reading.date}
+            latest_readings['EC'] = {'value': reading.EC if 'ec' in selected and reading.EC is not None else 0, 'timestamp': reading.date}
+            latest_readings['CO2'] = {'value': reading.CO2 if 'co2' in selected and reading.CO2 is not None else 0, 'timestamp': reading.date}
+        else:
+            latest_readings = dict(base_readings)
+    else:
+        latest_readings = dict(base_readings)
 
     default_sensors = {
         'Temperature': True,
         'Humidity': True,
         'pH': True,
         'EC': True,
-        'Water Temp': False,
-        'Dissolved Oxygen': False,
-        'TDS': False,
-        'CO2': False,
+        'CO2': True,
     }
 
-    enabled_sensors = request.session.get('sensor_preferences', default_sensors)
+    enabled_sensors = request.session.get('sensor_preferences', {})
+    for k, v in default_sensors.items():
+        if k not in enabled_sensors:
+            enabled_sensors[k] = v
+
+    display_name = current_user.Email_ID if current_user else 'User'
+    total_users_count = UserDevice.objects.count()
 
     context = {
         'devices': devices,
+        'air_devices': [d for d in devices if d.get('device_type') == 'AIR'],
+        'water_devices': [d for d in devices if d.get('device_type') == 'WATER'],
         'total_devices': total_devices,
+        'total_users': total_users_count,
         'online_devices': online_devices,
         'offline_devices': offline_devices,
         'first_device': first_device,
@@ -97,6 +127,7 @@ def dashboard_view(request):
         'recent_alerts': [],
         'user_name': display_name,
         'enabled_sensors': enabled_sensors,
+        'is_admin': is_admin,
     }
 
     return render(request, 'pages/index.html', context)
@@ -106,11 +137,10 @@ def get_latest_data(request, device_id):
     """
     API: Fetch latest sensor data
     """
-
     reading = (
         SensorValue.objects
         .filter(device_id=device_id)
-        .order_by('-date')   # ✅ ONLY REAL COLUMN
+        .order_by('-date')
         .first()
     )
 
@@ -172,69 +202,6 @@ def save_sensor_preferences(request):
 
 def add_device_view(request):
     """
-    Add new device (Admin only)
+    Legacy Add Device endpoint (kept for compatibility)
     """
-    if request.method != 'POST':
-        return JsonResponse({'success': False, 'error': 'POST required'}, status=405)
-    
-    # Check if user is admin
-    if request.session.get('role') != 'admin':
-        return JsonResponse({'success': False, 'error': 'Admin access required'}, status=403)
-    
-    try:
-        from greeva.hydroponics.models_custom import UserDevice
-        
-        device_name = request.POST.get('device_name')
-        location = request.POST.get('location')
-        device_type = request.POST.get('device_type')
-        sensor_id = request.POST.get('sensor_id', '')
-        
-        if not all([device_name, location, device_type]):
-            return JsonResponse({'success': False, 'error': 'Missing required fields'}, status=400)
-        
-        # Get current user
-        user_id = request.session.get('user_id')
-        if not user_id:
-            return JsonResponse({'success': False, 'error': 'User not logged in'}, status=401)
-        
-        try:
-            user = UserDevice.objects.get(User_ID=user_id)
-        except UserDevice.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
-        
-        # Generate unique Device_ID
-        import uuid
-        device_id = f"DEV-{uuid.uuid4().hex[:8].upper()}"
-        
-        # Auto-generate sensor ID if not provided
-        if not sensor_id:
-            sensor_id = f"SENS-{uuid.uuid4().hex[:6].upper()}"
-        
-        # Parse location (assuming format: "City, State" or just use as is)
-        # For now, we'll use default coordinates
-        latitude = 26.1445  # IIT Guwahati default
-        longitude = 91.6606
-        
-        # Create device
-        device = Device(
-            Device_ID=device_id,
-            User_ID=user,
-            Latitude=latitude,
-            Longitude=longitude
-        )
-        device.save()
-        
-        return JsonResponse({
-            'success': True,
-            'message': 'Device added successfully',
-            'device': {
-                'id': device.Device_ID,
-                'name': device_name,
-                'location': location,
-                'type': device_type,
-                'sensor_id': sensor_id
-            }
-        })
-        
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    return JsonResponse({'success': False, 'error': 'Use /api/devices/add-device/'}, status=403)

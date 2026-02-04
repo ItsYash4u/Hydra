@@ -242,6 +242,14 @@ EMAIL_BACKEND = env(
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-timeout
 EMAIL_TIMEOUT = 5
 
+# NOMINATIM (OpenStreetMap) GEOCODING
+# ------------------------------------------------------------------------------
+NOMINATIM_BASE_URL = env("NOMINATIM_BASE_URL", default="https://nominatim.openstreetmap.org")
+NOMINATIM_USER_AGENT = env("NOMINATIM_USER_AGENT", default="GreevaHydroponics/1.0")
+NOMINATIM_EMAIL = env("NOMINATIM_EMAIL", default=None)
+NOMINATIM_TIMEOUT = env.int("NOMINATIM_TIMEOUT", default=10)
+NOMINATIM_CACHE_TTL = env.int("NOMINATIM_CACHE_TTL", default=86400)
+
 # ADMIN
 # ------------------------------------------------------------------------------
 # Django Admin URL.

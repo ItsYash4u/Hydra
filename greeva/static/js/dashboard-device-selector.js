@@ -175,6 +175,9 @@ function renderMiniChart(label, currentValue) {
         if (header) header.innerHTML = `Live Sensor Data (Device ID: <span id="active-device-id" class="fw-bold text-primary">${deviceId}</span>)`;
 
         loadDeviceData(deviceId);
+        if (window.SensorHistoryManager) {
+            window.SensorHistoryManager.displayHistory(deviceId, 'sensor-history-container');
+        }
     }
 
     async function loadDeviceData(deviceId) {
