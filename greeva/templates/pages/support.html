@@ -1,0 +1,41 @@
+﻿{% extends 'vertical.html' %}
+{% load static %}
+
+{% block title %}Support{% endblock %}
+
+{% block page_title %}
+{% include 'partials/page-title.html' with title='Support' %}
+{% endblock page_title %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-xl-10 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="mb-3">Support</h4>
+                <p class="text-muted">Need help? Here are quick ways to get support.</p>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded">
+                            <h6 class="mb-2">Common Issues</h6>
+                            <ul class="text-muted mb-0">
+                                <li>Device not showing after add</li>
+                                <li>Sensor values not updating</li>
+                                <li>Location not resolving</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded">
+                            <h6 class="mb-2">Contact Support</h6>
+                            <p class="text-muted mb-2">Use the contact form and we’ll respond quickly.</p>
+                            <a class="btn btn-sm btn-primary" href="{% url 'pages:contact' %}">Go to Contact</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock page_content %}

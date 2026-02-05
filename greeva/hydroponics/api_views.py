@@ -8,8 +8,10 @@ from .serializers import SensorValueSerializer, DeviceRegistrationSerializer
 from .geocode import reverse_geocode, forward_geocode
 from greeva.users.auth_helpers import get_current_user
 from django.utils import timezone
+from django.db import transaction
 
 class AddDeviceAPIView(APIView):
+    authentication_classes = []
     permission_classes = [] 
 
     def post(self, request):
@@ -41,6 +43,7 @@ class AddDeviceAPIView(APIView):
 
 
 class GetDevicesAPIView(APIView):
+    authentication_classes = []
     permission_classes = [] 
 
     def get(self, request):
@@ -76,6 +79,7 @@ class GetDevicesAPIView(APIView):
 
 
 class PromoteToAdminAPIView(APIView):
+    authentication_classes = []
     permission_classes = []
 
     def post(self, request):
@@ -93,8 +97,15 @@ class PromoteToAdminAPIView(APIView):
         
         try:
             target_user = UserDevice.objects.get(Email_ID=user_email)
-            target_user.Role = 'admin'
-            target_user.save()
+            if target_user.Role != 'admin':
+                old_user_id = target_user.User_ID
+                from greeva.users.api_views import generate_short_user_id
+                new_user_id = generate_short_user_id('admin')
+                with transaction.atomic():
+                    target_user.Role = 'admin'
+                    target_user.User_ID = new_user_id
+                    target_user.save()
+                    Device.objects.filter(user_id=old_user_id).update(user_id=new_user_id)
             return Response({'message': f'{target_user.Email_ID} has been promoted to admin.'}, status=status.HTTP_200_OK)
             
         except UserDevice.DoesNotExist:
@@ -105,6 +116,7 @@ class ReverseGeocodeAPIView(APIView):
     """
     Resolve latitude/longitude to an address using Nominatim.
     """
+    authentication_classes = []
     permission_classes = []
 
     def post(self, request):
@@ -144,6 +156,7 @@ class ForwardGeocodeAPIView(APIView):
     """
     Resolve address fields to latitude/longitude using Nominatim.
     """
+    authentication_classes = []
     permission_classes = []
 
     def post(self, request):
@@ -194,6 +207,7 @@ class SensorDataView(APIView):
     """
     GET API: Returns the latest sensor values from SensorValue table.
     """
+    authentication_classes = []
     permission_classes = [] 
 
     def get(self, request):
@@ -253,6 +267,7 @@ class SensorHistoryView(APIView):
     """
     GET API: Returns sensor value history for a device (newest first).
     """
+    authentication_classes = []
     permission_classes = []
 
     def get(self, request):
@@ -264,6 +279,24 @@ class SensorHistoryView(APIView):
             qs = SensorValue.objects.filter(device_id=device_id).order_by('-timestamp')
             # Trigger evaluation to detect missing column early
             list(qs[:1])
+            readings = []
+            for idx, sensor_value in enumerate(qs):
+                readings.append({
+                    'id': idx + 1,
+                    'date': sensor_value.date.isoformat() if sensor_value.date else '',
+                    'timestamp': sensor_value.timestamp.isoformat() if sensor_value.timestamp else (sensor_value.date.isoformat() if sensor_value.date else ''),
+                    'temperature': float(sensor_value.temperature) if sensor_value.temperature is not None else None,
+                    'humidity': float(sensor_value.humidity) if sensor_value.humidity is not None else None,
+                    'ph': float(sensor_value.pH) if sensor_value.pH is not None else None,
+                    'ec': float(sensor_value.EC) if sensor_value.EC is not None else None,
+                    'co2': float(sensor_value.CO2) if sensor_value.CO2 is not None else None,
+                })
+
+            return Response({
+                'device_id': device_id,
+                'total_readings': len(readings),
+                'readings': readings
+            })
         except Exception:
             qs = SensorValue.objects.filter(device_id=device_id).order_by('-date')
             readings = []
@@ -291,6 +324,7 @@ class SensorIngestView(APIView):
     """
     POST API: Ingest sensor data into SensorValue.
     """
+    authentication_classes = []
     permission_classes = [] 
 
     def post(self, request):

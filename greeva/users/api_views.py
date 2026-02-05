@@ -5,7 +5,11 @@ from django.conf import settings
 from django.core.mail import send_mail
 from greeva.hydroponics.models_custom import UserDevice
 import random
-import uuid
+import re
+from django.db import transaction
+import time
+import hashlib
+from greeva.users.auth_helpers import get_current_user
 
 def generate_otp():
     return str(random.randint(100000, 999999))
@@ -16,6 +20,35 @@ def send_otp_email(email, otp):
     email_from = settings.DEFAULT_FROM_EMAIL
     recipient_list = [email]
     send_mail(subject, message, email_from, recipient_list, fail_silently=False)
+
+
+def generate_short_user_id(role: str) -> str:
+    prefix = "ADM" if role == "admin" else "USR"
+    pattern = re.compile(rf"^{prefix}(\d+)$")
+    max_num = 0
+
+    with transaction.atomic():
+        for uid in UserDevice.objects.filter(User_ID__startswith=prefix).values_list('User_ID', flat=True):
+            match = pattern.match(uid or "")
+            if match:
+                try:
+                    max_num = max(max_num, int(match.group(1)))
+                except ValueError:
+                    continue
+
+        next_num = max_num + 1
+        width = 3
+        if next_num > 999:
+            width = 4
+
+        user_id = f"{prefix}{next_num:0{width}d}"
+        while UserDevice.objects.filter(User_ID=user_id).exists():
+            next_num += 1
+            if next_num > 999 and width == 3:
+                width = 4
+            user_id = f"{prefix}{next_num:0{width}d}"
+
+    return user_id
 
 class SignupAPIView(APIView):
     permission_classes = []
@@ -87,6 +120,8 @@ class LoginAPIView(APIView):
         request.session['user_id'] = user.User_ID
         request.session['email'] = user.Email_ID
         request.session['role'] = user.Role
+        request.session['name'] = user.Name or user.Email_ID
+        request.session['profile_image'] = user.profile_image or ''
         request.session.save()
         
         return Response({'message': 'Login successful', 'redirect_url': '/loading/'}, status=status.HTTP_200_OK)
@@ -111,8 +146,8 @@ class VerifyOTPAPIView(APIView):
 
         # OTP Verified - Create UserDevice
         try:
-            # Generate generic User ID if not provided
-            new_user_id = f"USER-{uuid.uuid4().hex[:8].upper()}"
+            # Generate short role-based User ID
+            new_user_id = generate_short_user_id('user')
             
             user = UserDevice(
                 User_ID=new_user_id,
@@ -129,6 +164,8 @@ class VerifyOTPAPIView(APIView):
             request.session['user_id'] = user.User_ID
             request.session['email'] = user.Email_ID
             request.session['role'] = user.Role
+            request.session['name'] = user.Name or user.Email_ID
+            request.session['profile_image'] = user.profile_image or ''
             
             # Cleanup session
             del request.session['signup_otp']
@@ -148,3 +185,30 @@ class ResendOTPAPIView(APIView):
         request.session['signup_otp'] = otp_code
         print(f"🔥 Resent OTP: {otp_code}")
         return Response({'message': 'OTP resent.'}, status=status.HTTP_200_OK)
+
+class CloudinarySignatureAPIView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        user = get_current_user(request)
+        if not user:
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        cloud_name = getattr(settings, "CLOUDINARY_CLOUD_NAME", "")
+        api_key = getattr(settings, "CLOUDINARY_API_KEY", "")
+        api_secret = getattr(settings, "CLOUDINARY_API_SECRET", "")
+
+        if not cloud_name or not api_key or not api_secret:
+            return Response({'error': 'Cloudinary is not configured.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        timestamp = int(time.time())
+        signature_base = f"timestamp={timestamp}{api_secret}"
+        signature = hashlib.sha1(signature_base.encode("utf-8")).hexdigest()
+
+        return Response({
+            'timestamp': timestamp,
+            'signature': signature,
+            'api_key': api_key,
+            'cloud_name': cloud_name,
+        }, status=status.HTTP_200_OK)

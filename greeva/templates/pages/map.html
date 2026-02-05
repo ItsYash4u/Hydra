@@ -30,7 +30,10 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         try {
-            const mapData = JSON.parse(document.getElementById('map-data-json').textContent);
+            let mapData = JSON.parse(document.getElementById('map-data-json').textContent);
+            if (typeof mapData === 'string') {
+                mapData = JSON.parse(mapData);
+            }
             console.log("Map Data:", mapData);
 
             if (typeof L === 'undefined') {
@@ -45,7 +48,8 @@
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
 
-            mapData.points.forEach(point => {
+            const points = Array.isArray(mapData.points) ? mapData.points : [];
+            points.forEach(point => {
                 const color = point.status === 'Online' ? 'green' : 'red';
 
                 const markerHtml = `

@@ -35,8 +35,8 @@ class UserDevice(models.Model):
     class Meta:
         app_label = 'hydroponics'
         db_table = 'userdevice'
-        verbose_name = 'User Device'
-        verbose_name_plural = 'User Devices'
+        verbose_name = 'User'
+        verbose_name_plural = 'Users'
 
     def __str__(self):
         return f"{self.User_ID} ({self.Email_ID})"
@@ -64,24 +64,26 @@ class Device(models.Model):
     )
     Device_ID = models.CharField(max_length=50, unique=True, verbose_name="Device ID")
     Device_Name = models.CharField(max_length=100, blank=True, null=True, verbose_name="Device Name")
-    Device_Sensors = models.TextField(blank=True, null=True, verbose_name="Device Sensors")
+    Device_Sensors = models.TextField(blank=True, null=True, verbose_name="Device Sensors", db_column='device_sensors')
     Device_Type = models.CharField(
         max_length=10,
         choices=[('AIR', 'Air Device'), ('WATER', 'Water Device')],
         default='AIR',
-        verbose_name="Device Type"
+        verbose_name="Device Type",
+        db_column='device_type'
     )
     Registration_Status = models.CharField(
         max_length=20,
         choices=[('REGISTERED', 'Registered'), ('PENDING', 'Pending')],
         default='REGISTERED',
-        verbose_name="Registration Status"
+        verbose_name="Registration Status",
+        db_column='registration_status'
     )
-    Registered_At = models.DateTimeField(null=True, blank=True, verbose_name="Registered At")
+    Registered_At = models.DateTimeField(null=True, blank=True, verbose_name="Registered At", db_column='registered_at')
     Latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
     Longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
-    Created_At = models.DateTimeField(auto_now_add=True)
-    Updated_At = models.DateTimeField(auto_now=True)
+    Created_At = models.DateTimeField(auto_now_add=True, db_column='created_at')
+    Updated_At = models.DateTimeField(auto_now=True, db_column='updated_at')
 
     class Meta:
         app_label = 'hydroponics'

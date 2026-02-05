@@ -7,11 +7,12 @@ from django.urls import path
 from django.views import defaults as default_views
 from django.views.generic import TemplateView
 from greeva.users.auth_views import custom_login_view, custom_signup_view, custom_logout_view, custom_verify_otp_view
+from greeva.hydroponics.admin_site import hydroponics_admin_site
 
 urlpatterns = [
     
     # Django Admin, use {% url 'admin:index' %}
-    path(settings.ADMIN_URL, admin.site.urls),
+    path(settings.ADMIN_URL, hydroponics_admin_site.urls),
     # User management
     path("users/", include("greeva.users.urls", namespace="users")),
     

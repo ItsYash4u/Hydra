@@ -26,7 +26,7 @@ DATA_SOURCE = env("DATA_SOURCE", default="DUMMY")
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # though not all of them may be available with every OS.
 # In Windows, this must be set to your system time zone.
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Kolkata"
 # https://docs.djangoproject.com/en/dev/ref/settings/#language-code
 LANGUAGE_CODE = "en-us"
 # https://docs.djangoproject.com/en/dev/ref/settings/#languages
@@ -42,6 +42,11 @@ SITE_ID = 1
 USE_I18N = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-tz
 USE_TZ = True
+
+# Use 24-hour time (avoid AM/PM)
+DATETIME_FORMAT = "M d, Y, H:i"
+DATE_FORMAT = "M d, Y"
+TIME_FORMAT = "H:i"
 # https://docs.djangoproject.com/en/dev/ref/settings/#locale-paths
 LOCALE_PATHS = [str(BASE_DIR / "locale")]
 
@@ -247,6 +252,12 @@ EMAIL_TIMEOUT = 5
 NOMINATIM_BASE_URL = env("NOMINATIM_BASE_URL", default="https://nominatim.openstreetmap.org")
 NOMINATIM_USER_AGENT = env("NOMINATIM_USER_AGENT", default="GreevaHydroponics/1.0")
 NOMINATIM_EMAIL = env("NOMINATIM_EMAIL", default=None)
+
+# Cloudinary (unsigned uploads)
+CLOUDINARY_CLOUD_NAME = env("CLOUDINARY_CLOUD_NAME", default="")
+CLOUDINARY_UPLOAD_PRESET = env("CLOUDINARY_UPLOAD_PRESET", default="")
+CLOUDINARY_API_KEY = env("CLOUDINARY_API_KEY", default="")
+CLOUDINARY_API_SECRET = env("CLOUDINARY_API_SECRET", default="")
 NOMINATIM_TIMEOUT = env.int("NOMINATIM_TIMEOUT", default=10)
 NOMINATIM_CACHE_TTL = env.int("NOMINATIM_CACHE_TTL", default=86400)
 

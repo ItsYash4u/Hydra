@@ -53,6 +53,7 @@ user_redirect_view = UserRedirectView.as_view()
 
 @custom_login_required
 def user_profile_view(request):
+    from django.conf import settings
     current_user = get_current_user(request)
     if not current_user:
         return redirect('/auth/login/')
@@ -83,10 +84,18 @@ def user_profile_view(request):
         if updated:
             current_user.save()
             messages.success(request, "Profile updated successfully.")
+            request.session['name'] = current_user.Name or current_user.Email_ID
+            request.session['profile_image'] = current_user.profile_image or ''
 
         return redirect(f"{reverse('users:profile')}?updated=1")
 
-    return render(request, "users/user_profile.html", {"current_user": current_user})
+    request.session['profile_image'] = current_user.profile_image or ''
+
+    return render(request, "users/user_profile.html", {
+        "current_user": current_user,
+        "cloudinary_cloud_name": getattr(settings, "CLOUDINARY_CLOUD_NAME", ""),
+        "cloudinary_upload_preset": getattr(settings, "CLOUDINARY_UPLOAD_PRESET", ""),
+    })
 
 
 

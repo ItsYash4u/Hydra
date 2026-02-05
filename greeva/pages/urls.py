@@ -9,6 +9,9 @@ from .views import (
     map_view,
     info_view,
     devices_list_view,
+    about_view,
+    support_view,
+    contact_view,
 )
 
 app_name = "pages"
@@ -22,5 +25,8 @@ urlpatterns = [
     path("map/", map_view, name="map"),
     path("info/", info_view, name="info"),
     path("devices/", devices_list_view, name="devices_list"),
+    path("about/", about_view, name="about"),
+    path("support/", support_view, name="support"),
+    path("contact/", contact_view, name="contact"),
     path("<str:template_name>/", dynamic_pages_view, name="dynamic"),
 ]

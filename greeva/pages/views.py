@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.template import TemplateDoesNotExist
 from django.http import Http404
+from django.conf import settings
+from django.core.mail import send_mail
 
 # -------------------------
 # Public / Landing Pages
@@ -96,7 +98,6 @@ def map_view(request):
     Shows all device locations
     """
     from greeva.hydroponics.models_custom import Device, UserDevice
-    import json
     import random
     
     # Show all devices without authentication
@@ -134,7 +135,8 @@ def map_view(request):
     }
     
     context = {
-        'map_data_json': json.dumps(map_data),
+        # Pass raw dict and let json_script handle encoding safely
+        'map_data_json': map_data,
         'is_admin': True  # Always admin view
     }
     return render(request, 'pages/map.html', context)
@@ -146,6 +148,52 @@ def info_view(request):
     No backend logic required - static informational page
     """
     return render(request, 'pages/info.html')
+
+
+def about_view(request):
+    """About page"""
+    return render(request, 'pages/about.html')
+
+
+def support_view(request):
+    """Support page"""
+    return render(request, 'pages/support.html')
+
+
+def contact_view(request):
+    """Contact page with email form"""
+    success = False
+    error = None
+    preset_email = request.session.get('email', '')
+
+    if request.method == 'POST':
+        name = (request.POST.get('name') or '').strip()
+        email = (request.POST.get('email') or '').strip()
+        message = (request.POST.get('message') or '').strip()
+
+        if not email or not message:
+            error = "Please provide your email and message."
+        else:
+            subject = f"Smart IoT Contact: {name or email}"
+            body = f"From: {name or '-'}\\nEmail: {email}\\n\\n{message}"
+            to_email = getattr(settings, 'CONTACT_EMAIL', None) or settings.DEFAULT_FROM_EMAIL
+            try:
+                send_mail(
+                    subject,
+                    body,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [to_email],
+                    fail_silently=False
+                )
+                success = True
+            except Exception:
+                error = "Unable to send message right now. Please try again later."
+
+    return render(request, 'pages/contact.html', {
+        'success': success,
+        'error': error,
+        'preset_email': preset_email
+    })
 
 
 

@@ -1,6 +1,6 @@
 from django.urls import path
 from .api_views import (
-    SignupAPIView, LoginAPIView, VerifyOTPAPIView, ResendOTPAPIView
+    SignupAPIView, LoginAPIView, VerifyOTPAPIView, ResendOTPAPIView, CloudinarySignatureAPIView
 )
 
 urlpatterns = [
@@ -8,4 +8,5 @@ urlpatterns = [
     path('login/', LoginAPIView.as_view(), name='api_login'),
     path('verify-otp/', VerifyOTPAPIView.as_view(), name='api_verify_otp'),
     path('resend-otp/', ResendOTPAPIView.as_view(), name='api_resend_otp'),
+    path('cloudinary-signature/', CloudinarySignatureAPIView.as_view(), name='api_cloudinary_signature'),
 ]

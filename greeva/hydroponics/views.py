@@ -9,9 +9,11 @@ import json
 
 from .models_custom import Device, SensorValue, UserDevice
 from greeva.users.auth_helpers import custom_login_required, get_current_user
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 
 @custom_login_required
+@ensure_csrf_cookie
 def dashboard_view(request):
     """
     Main dashboard view using Custom Database
@@ -112,7 +114,7 @@ def dashboard_view(request):
             enabled_sensors[k] = v
 
     display_name = current_user.Email_ID if current_user else 'User'
-    total_users_count = UserDevice.objects.count()
+    total_users_count = UserDevice.objects.count() if is_admin else None
 
     context = {
         'devices': devices,
