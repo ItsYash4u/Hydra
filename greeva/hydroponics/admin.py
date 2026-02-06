@@ -8,7 +8,7 @@ from django.contrib import admin
 from django.db.models import F, Window
 from django.db.models.functions import RowNumber
 from django.utils.html import format_html
-from .models import UserDevice, Device, SensorValue
+from .models import UserDevice, Device, SensorValue, DoserRecord
 from .admin_site import hydroponics_admin_site
 
 
@@ -131,3 +131,11 @@ class SensorValueAdmin(admin.ModelAdmin):
             'fields': ('temperature', 'humidity', 'pH', 'EC', 'CO2')
         }),
     )
+
+
+@admin.register(DoserRecord, site=hydroponics_admin_site)
+class DoserRecordAdmin(admin.ModelAdmin):
+    list_display = ('source_id', 'source_timestamp', 'received_at')
+    search_fields = ('source_id',)
+    list_filter = ('received_at',)
+    readonly_fields = ('received_at',)

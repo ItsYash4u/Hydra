@@ -134,18 +134,6 @@ const SensorHistoryManager = (() => {
                             </div>
                         </div>
 
-                        <!-- CO2 -->
-                        <div class="col-6 col-md-3">
-                            <div class="text-center p-2 bg-light rounded">
-                                <small class="text-muted d-block">CO2</small>
-                                <h5 class="mb-0 fw-bold">
-                                    <span class="sensor-value-display">
-                                        ${reading.co2 !== null ? reading.co2.toFixed(0) : '--'}
-                                    </span>
-                                    <small class="text-muted">ppm</small>
-                                </h5>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -155,7 +143,7 @@ const SensorHistoryManager = (() => {
     /**
      * Display sensor reading history in a container
      */
-    async function displayHistory(deviceId, containerId) {
+    async function displayHistory(deviceId, containerId, limit = null) {
         const container = document.getElementById(containerId);
         if (!container) {
             console.warn(`Container with id '${containerId}' not found`);
@@ -173,8 +161,12 @@ const SensorHistoryManager = (() => {
         `;
 
         const readings = await fetchHistory(deviceId);
+        const totalReadings = readings.length;
+        const displayReadings = (limit && readings.length > limit)
+            ? readings.slice(0, limit)
+            : readings;
 
-        if (readings.length === 0) {
+        if (displayReadings.length === 0) {
             container.innerHTML = `
                 <div class="alert alert-info" role="alert">
                     <i class="ti ti-info-circle me-2"></i>
@@ -190,12 +182,13 @@ const SensorHistoryManager = (() => {
                 <div class="mb-3">
                     <small class="text-muted">
                         <i class="ti ti-stack me-1"></i>
-                        Total Readings: <strong>${readings.length}</strong>
+                        Total Readings: <strong>${totalReadings}</strong>
                     </small>
+                    ${limit ? `<small class="text-muted ms-2">Showing: <strong>${displayReadings.length}</strong></small>` : ''}
                 </div>
         `;
 
-        readings.forEach((reading, index) => {
+        displayReadings.forEach((reading, index) => {
             html += createReadingCard(reading, index);
         });
 
@@ -228,13 +221,13 @@ const SensorHistoryManager = (() => {
     /**
      * Set up periodic refresh of sensor history
      */
-    function startAutoRefresh(deviceId, containerId, intervalMs = 10000) {
+    function startAutoRefresh(deviceId, containerId, intervalMs = 10000, limit = null) {
         // Initial load
-        displayHistory(deviceId, containerId);
+        displayHistory(deviceId, containerId, limit);
 
         // Refresh every interval
         const intervalId = setInterval(() => {
-            displayHistory(deviceId, containerId);
+            displayHistory(deviceId, containerId, limit);
         }, intervalMs);
 
         return intervalId; // Return ID so it can be stopped later

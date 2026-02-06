@@ -10,6 +10,7 @@ app_name = 'hydroponics'
 
 urlpatterns = [
     path('dashboard/', views.dashboard_view, name='dashboard'),
+    path('readings/', views.sensor_history_view, name='sensor_history'),
     path('search/', views.search_view, name='search'),
     path('api/latest/<str:device_id>/', views.get_latest_data, name='get_latest_data'),
     path('api/save-sensor-preferences/', views.save_sensor_preferences, name='save_sensor_preferences'),

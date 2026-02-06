@@ -176,7 +176,7 @@ function renderMiniChart(label, currentValue) {
 
         loadDeviceData(deviceId);
         if (window.SensorHistoryManager) {
-            window.SensorHistoryManager.displayHistory(deviceId, 'sensor-history-container');
+            window.SensorHistoryManager.displayHistory(deviceId, 'sensor-history-container', 3);
         }
     }
 
@@ -207,7 +207,10 @@ function renderMiniChart(label, currentValue) {
 
             if (val !== undefined && val !== null) {
                 const valEl = card.querySelector('.sensor-value');
-                if (valEl) valEl.innerText = parseFloat(val).toFixed(1);
+                if (valEl) {
+                    const precision = type === 'pH' ? 2 : 1;
+                    valEl.innerText = parseFloat(val).toFixed(precision);
+                }
 
                 card.setAttribute('data-sensor-value', val);
 

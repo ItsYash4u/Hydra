@@ -5,7 +5,7 @@ Imports the three custom tables: UserDevice, Device, SensorValue
 """
 
 # Import custom models
-from .models_custom import UserDevice, Device, SensorValue
+from .models_custom import UserDevice, Device, SensorValue, DoserRecord
 
 # Export for use in other modules
-__all__ = ['UserDevice', 'Device', 'SensorValue']
+__all__ = ['UserDevice', 'Device', 'SensorValue', 'DoserRecord']

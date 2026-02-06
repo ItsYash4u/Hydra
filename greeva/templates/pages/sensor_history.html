@@ -1,0 +1,64 @@
+{% extends 'vertical.html' %}
+
+{% load static %}
+
+{% block title %}Sensor Readings{% endblock title %}
+
+{% block page_title %}
+{% include 'partials/page-title.html' with title="Sensor Readings" %}
+{% endblock page_title %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="header-title mb-0">Sensor Reading History</h4>
+                    <small class="text-muted">All readings for the selected device</small>
+                </div>
+                {% if devices %}
+                <select id="history-device-select" class="form-select form-select-sm" style="max-width: 260px;">
+                    {% for d in devices %}
+                    <option value="{{ d.id }}" {% if d.id == device_id %}selected{% endif %}>
+                        {{ d.name }} ({{ d.id }})
+                    </option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div id="sensor-history-container"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock page_content %}
+
+{% block extra_javascript %}
+<script src="{% static 'js/sensor-history.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const containerId = 'sensor-history-container';
+        const selectEl = document.getElementById('history-device-select');
+        let deviceId = "{{ device_id|default:'' }}";
+
+        function loadHistory(id) {
+            if (!id || !window.SensorHistoryManager) return;
+            window.SensorHistoryManager.displayHistory(id, containerId);
+        }
+
+        if (selectEl) {
+            selectEl.addEventListener('change', () => {
+                deviceId = selectEl.value;
+                loadHistory(deviceId);
+                const url = new URL(window.location.href);
+                url.searchParams.set('device_id', deviceId);
+                window.history.replaceState({}, '', url);
+            });
+        }
+
+        loadHistory(deviceId);
+    });
+</script>
+{% endblock extra_javascript %}

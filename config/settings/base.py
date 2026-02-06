@@ -22,6 +22,10 @@ if READ_DOT_ENV_FILE:
 DEBUG = env.bool("DJANGO_DEBUG", False)
 # Custom Data Source Switch (DUMMY or REAL)
 DATA_SOURCE = env("DATA_SOURCE", default="DUMMY")
+NBRI_FETCH_URL = env("NBRI_FETCH_URL", default="http://34.219.171.196/tih/nbri/fetchph.php")
+NBRI_PH_URL = env("NBRI_PH_URL", default=NBRI_FETCH_URL)
+NBRI_TEMP_URL = env("NBRI_TEMP_URL", default="http://34.219.171.196/tih/nbri/fetchtemp.php")
+NBRI_FETCH_TIMEOUT = env.int("NBRI_FETCH_TIMEOUT", default=10)
 # Local time zone. Choices are
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # though not all of them may be available with every OS.

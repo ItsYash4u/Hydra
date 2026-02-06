@@ -7,7 +7,8 @@ from django.http import JsonResponse
 from django.utils import timezone
 import json
 
-from .models_custom import Device, SensorValue, UserDevice
+from .models_custom import Device, SensorValue, UserDevice, DoserRecord
+from .integrations.nbri_fetch import map_payload_to_sensors, sync_nbri_records_if_stale
 from greeva.users.auth_helpers import custom_login_required, get_current_user
 from django.views.decorators.csrf import ensure_csrf_cookie
 
@@ -67,6 +68,7 @@ def dashboard_view(request):
     offline_devices = 0
 
     first_device = devices[0] if devices else None
+    nbri_last_sync = sync_nbri_records_if_stale()
     latest_readings = {}
 
     base_readings = {
@@ -78,25 +80,39 @@ def dashboard_view(request):
     }
 
     if first_device:
-        selected = set(first_device.get('device_sensors') or [])
+        raw_selected = first_device.get('device_sensors') or []
+        selected = {str(s).strip().lower() for s in raw_selected if str(s).strip()}
         if not selected:
             selected = {'temperature', 'humidity', 'ph', 'ec', 'co2'}
-        reading = (
-            SensorValue.objects
-            .filter(device_id=str(first_device['id']))
-            .order_by('-date')
-            .first()
-        )
 
-        if reading:
+        # Prefer external doser feed if available
+        latest_doser = DoserRecord.objects.order_by('-source_timestamp', '-received_at').first()
+        if latest_doser:
+            mapped = map_payload_to_sensors(latest_doser.payload if isinstance(latest_doser.payload, dict) else {})
+            ts = latest_doser.source_timestamp or latest_doser.received_at
             latest_readings = dict(base_readings)
-            latest_readings['Temperature'] = {'value': reading.temperature if 'temperature' in selected and reading.temperature is not None else 0, 'timestamp': reading.date}
-            latest_readings['Humidity'] = {'value': reading.humidity if 'humidity' in selected and reading.humidity is not None else 0, 'timestamp': reading.date}
-            latest_readings['pH'] = {'value': reading.pH if 'ph' in selected and reading.pH is not None else 0, 'timestamp': reading.date}
-            latest_readings['EC'] = {'value': reading.EC if 'ec' in selected and reading.EC is not None else 0, 'timestamp': reading.date}
-            latest_readings['CO2'] = {'value': reading.CO2 if 'co2' in selected and reading.CO2 is not None else 0, 'timestamp': reading.date}
+            latest_readings['Temperature'] = {'value': mapped.get('temperature') if mapped.get('temperature') is not None else 0, 'timestamp': ts}
+            latest_readings['Humidity'] = {'value': mapped.get('humidity') if mapped.get('humidity') is not None else 0, 'timestamp': ts}
+            latest_readings['pH'] = {'value': mapped.get('ph') if mapped.get('ph') is not None else 0, 'timestamp': ts}
+            latest_readings['EC'] = {'value': mapped.get('ec') if mapped.get('ec') is not None else 0, 'timestamp': ts}
+            latest_readings['CO2'] = {'value': mapped.get('co2') if mapped.get('co2') is not None else 0, 'timestamp': ts}
         else:
-            latest_readings = dict(base_readings)
+            reading = (
+                SensorValue.objects
+                .filter(device_id=str(first_device['id']))
+                .order_by('-date')
+                .first()
+            )
+
+            if reading:
+                latest_readings = dict(base_readings)
+                latest_readings['Temperature'] = {'value': reading.temperature if 'temperature' in selected and reading.temperature is not None else 0, 'timestamp': reading.date}
+                latest_readings['Humidity'] = {'value': reading.humidity if 'humidity' in selected and reading.humidity is not None else 0, 'timestamp': reading.date}
+                latest_readings['pH'] = {'value': reading.pH if 'ph' in selected and reading.pH is not None else 0, 'timestamp': reading.date}
+                latest_readings['EC'] = {'value': reading.EC if 'ec' in selected and reading.EC is not None else 0, 'timestamp': reading.date}
+                latest_readings['CO2'] = {'value': reading.CO2 if 'co2' in selected and reading.CO2 is not None else 0, 'timestamp': reading.date}
+            else:
+                latest_readings = dict(base_readings)
     else:
         latest_readings = dict(base_readings)
 
@@ -116,6 +132,19 @@ def dashboard_view(request):
     display_name = current_user.Email_ID if current_user else 'User'
     total_users_count = UserDevice.objects.count() if is_admin else None
 
+    nbri_qs = DoserRecord.objects.order_by('-source_timestamp', '-received_at')[:20]
+    nbri_records = []
+    nbri_columns = []
+    if nbri_qs:
+        first_payload = nbri_qs[0].payload if isinstance(nbri_qs[0].payload, dict) else {}
+        nbri_columns = list(first_payload.keys())[:8]
+        for rec in nbri_qs:
+            nbri_records.append({
+                'source_id': rec.source_id,
+                'source_timestamp': rec.source_timestamp,
+                'payload': rec.payload if isinstance(rec.payload, dict) else {},
+            })
+
     context = {
         'devices': devices,
         'air_devices': [d for d in devices if d.get('device_type') == 'AIR'],
@@ -130,6 +159,9 @@ def dashboard_view(request):
         'user_name': display_name,
         'enabled_sensors': enabled_sensors,
         'is_admin': is_admin,
+        'nbri_records': nbri_records,
+        'nbri_columns': nbri_columns,
+        'nbri_last_sync': nbri_last_sync,
     }
 
     return render(request, 'pages/index.html', context)
@@ -139,27 +171,37 @@ def get_latest_data(request, device_id):
     """
     API: Fetch latest sensor data
     """
-    reading = (
-        SensorValue.objects
-        .filter(device_id=device_id)
-        .order_by('-date')
-        .first()
-    )
-
-    if reading:
+    latest_doser = DoserRecord.objects.order_by('-source_timestamp', '-received_at').first()
+    if latest_doser:
+        mapped = map_payload_to_sensors(latest_doser.payload if isinstance(latest_doser.payload, dict) else {})
         data = {
-            'temperature': float(reading.temperature or 0),
-            'humidity': float(reading.humidity or 0),
-            'ph': float(reading.pH or 0),
-            'ec': float(reading.EC or 0),
+            'temperature': float(mapped.get('temperature') or 0),
+            'humidity': float(mapped.get('humidity') or 0),
+            'ph': float(mapped.get('ph') or 0),
+            'ec': float(mapped.get('ec') or 0),
         }
     else:
-        data = {
-            'temperature': 0,
-            'humidity': 0,
-            'ph': 0,
-            'ec': 0,
-        }
+        reading = (
+            SensorValue.objects
+            .filter(device_id=device_id)
+            .order_by('-date')
+            .first()
+        )
+
+        if reading:
+            data = {
+                'temperature': float(reading.temperature or 0),
+                'humidity': float(reading.humidity or 0),
+                'ph': float(reading.pH or 0),
+                'ec': float(reading.EC or 0),
+            }
+        else:
+            data = {
+                'temperature': 0,
+                'humidity': 0,
+                'ph': 0,
+                'ec': 0,
+            }
 
     return JsonResponse(data)
 
@@ -207,3 +249,40 @@ def add_device_view(request):
     Legacy Add Device endpoint (kept for compatibility)
     """
     return JsonResponse({'success': False, 'error': 'Use /api/devices/add-device/'}, status=403)
+
+
+@custom_login_required
+def sensor_history_view(request):
+    """
+    Full sensor reading history page.
+    """
+    current_user = get_current_user(request)
+    if not current_user:
+        return redirect('/auth/login/')
+
+    role = request.session.get('role', 'user')
+    is_admin = (role == 'admin')
+
+    if is_admin:
+        devices_qs = Device.objects.all().order_by('-Created_At')
+    else:
+        devices_qs = Device.objects.filter(user=current_user).order_by('-Created_At')
+
+    device_id = request.GET.get('device_id')
+    if not device_id:
+        first = devices_qs.first()
+        device_id = first.Device_ID if first else ''
+
+    devices = []
+    for d in devices_qs:
+        devices.append({
+            'id': d.Device_ID,
+            'name': d.Device_Name or d.Device_ID,
+        })
+
+    context = {
+        'device_id': device_id,
+        'devices': devices,
+        'is_admin': is_admin,
+    }
+    return render(request, 'pages/sensor_history.html', context)

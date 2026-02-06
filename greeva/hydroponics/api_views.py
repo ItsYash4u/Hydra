@@ -3,9 +3,10 @@ import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models_custom import Device, UserDevice, SensorValue
+from .models_custom import Device, UserDevice, SensorValue, DoserRecord
 from .serializers import SensorValueSerializer, DeviceRegistrationSerializer
 from .geocode import reverse_geocode, forward_geocode
+from .integrations.nbri_fetch import map_payload_to_sensors, sync_nbri_records_if_stale
 from greeva.users.auth_helpers import get_current_user
 from django.utils import timezone
 from django.db import transaction
@@ -100,12 +101,18 @@ class PromoteToAdminAPIView(APIView):
             if target_user.Role != 'admin':
                 old_user_id = target_user.User_ID
                 from greeva.users.api_views import generate_short_user_id
-                new_user_id = generate_short_user_id('admin')
+                devices_linked = Device.objects.filter(user_id=old_user_id).exists()
                 with transaction.atomic():
                     target_user.Role = 'admin'
-                    target_user.User_ID = new_user_id
+                    if not devices_linked:
+                        new_user_id = generate_short_user_id('admin')
+                        target_user.User_ID = new_user_id
                     target_user.save()
-                    Device.objects.filter(user_id=old_user_id).update(user_id=new_user_id)
+                if devices_linked:
+                    return Response(
+                        {'message': f'{target_user.Email_ID} promoted to admin. User ID kept because devices are linked.'},
+                        status=status.HTTP_200_OK
+                    )
             return Response({'message': f'{target_user.Email_ID} has been promoted to admin.'}, status=status.HTTP_200_OK)
             
         except UserDevice.DoesNotExist:
@@ -211,6 +218,7 @@ class SensorDataView(APIView):
     permission_classes = [] 
 
     def get(self, request):
+        sync_nbri_records_if_stale()
         device_id = request.query_params.get('device_id')
         if not device_id:
              return Response({'error': 'Device ID is required.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -219,6 +227,24 @@ class SensorDataView(APIView):
             device = Device.objects.filter(Device_ID=device_id).first()
             if not device:
                 return Response({'error': 'Device not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Prefer external doser feed when available
+            latest_doser = DoserRecord.objects.order_by('-source_timestamp', '-received_at').first()
+            if latest_doser:
+                mapped = map_payload_to_sensors(latest_doser.payload if isinstance(latest_doser.payload, dict) else {})
+                data = {
+                    'temperature': float(mapped.get('temperature')) if mapped.get('temperature') is not None else 0,
+                    'humidity': float(mapped.get('humidity')) if mapped.get('humidity') is not None else 0,
+                    'ph': float(mapped.get('ph')) if mapped.get('ph') is not None else 0,
+                    'ec': float(mapped.get('ec')) if mapped.get('ec') is not None else 0,
+                    'co2': float(mapped.get('co2')) if mapped.get('co2') is not None else 0,
+                    'tds': 0,
+                    'light': 0,
+                    'water_temp': 0,
+                    'dissolved_oxygen': 0,
+                    'timestamp': (latest_doser.source_timestamp or latest_doser.received_at).isoformat() if (latest_doser.source_timestamp or latest_doser.received_at) else None
+                }
+                return Response(data)
 
             try:
                 qs = SensorValue.objects.filter(device_id=device_id).order_by('-timestamp')
@@ -233,9 +259,10 @@ class SensorDataView(APIView):
 
             if latest:
                 try:
-                    selected = set(json.loads(device.Device_Sensors) if device.Device_Sensors else [])
+                    raw_selected = json.loads(device.Device_Sensors) if device.Device_Sensors else []
                 except (TypeError, ValueError):
-                    selected = set()
+                    raw_selected = []
+                selected = {str(s).strip().lower() for s in raw_selected if str(s).strip()}
                 if not selected:
                     selected = {'temperature', 'humidity', 'ph', 'ec', 'co2'}
 
@@ -271,11 +298,38 @@ class SensorHistoryView(APIView):
     permission_classes = []
 
     def get(self, request):
+        sync_nbri_records_if_stale()
         device_id = request.query_params.get('device_id')
         if not device_id:
             return Response({'error': 'Device ID is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            # If doser records exist, return them as history
+            doser_qs = DoserRecord.objects.order_by('-source_timestamp', '-received_at')
+            if doser_qs.exists():
+                readings = []
+                for idx, rec in enumerate(doser_qs[:50]):
+                    mapped = map_payload_to_sensors(rec.payload if isinstance(rec.payload, dict) else {})
+                    ts = rec.source_timestamp or rec.received_at
+                    date_val = ts.date().isoformat() if ts else ''
+                    ts_val = ts.isoformat() if ts else ''
+                    readings.append({
+                        'id': idx + 1,
+                        'date': date_val,
+                        'timestamp': ts_val,
+                        'temperature': float(mapped.get('temperature')) if mapped.get('temperature') is not None else None,
+                        'humidity': float(mapped.get('humidity')) if mapped.get('humidity') is not None else None,
+                        'ph': float(mapped.get('ph')) if mapped.get('ph') is not None else None,
+                        'ec': float(mapped.get('ec')) if mapped.get('ec') is not None else None,
+                        'co2': float(mapped.get('co2')) if mapped.get('co2') is not None else None,
+                    })
+
+                return Response({
+                    'device_id': device_id,
+                    'total_readings': len(readings),
+                    'readings': readings
+                })
+
             qs = SensorValue.objects.filter(device_id=device_id).order_by('-timestamp')
             # Trigger evaluation to detect missing column early
             list(qs[:1])

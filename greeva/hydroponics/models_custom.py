@@ -156,3 +156,29 @@ class SensorValue(models.Model):
             models.Index(fields=['date']),
         ]
         ordering = ['-timestamp']
+
+
+class DoserRecord(models.Model):
+    """
+    Records synced from the external NBRI fetch endpoint.
+    Stores the full JSON payload for flexibility.
+    """
+    id = models.AutoField(primary_key=True)
+    source_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
+    payload = models.JSONField()
+    source_timestamp = models.DateTimeField(null=True, blank=True)
+    received_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = 'hydroponics'
+        db_table = 'doser_records'
+        verbose_name = 'Doser Record'
+        verbose_name_plural = 'Doser Records'
+        indexes = [
+            models.Index(fields=['source_id'], name='doser_src_idx'),
+            models.Index(fields=['-source_timestamp'], name='doser_ts_idx'),
+            models.Index(fields=['-received_at'], name='doser_rcv_idx'),
+        ]
+
+    def __str__(self):
+        return self.source_id or f"Record {self.id}"

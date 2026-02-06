@@ -1,6 +1,7 @@
 {% extends 'vertical.html' %}
 
 {% load static %}
+{% load dict_utils %}
 
 {% block title %}Dashboard{% endblock title %}
 
@@ -314,7 +315,11 @@
                                 <!-- Value -->
                                 <h3 class="fw-bold mb-0">
                                     <span class="sensor-value">
+                                        {% if 'pH' in sensor_type %}
+                                        {{ reading.value|floatformat:2 }}
+                                        {% else %}
                                         {{ reading.value|floatformat:1 }}
+                                        {% endif %}
                                     </span>
                                     <small class="fs-14 text-muted">
                                         {% if 'Temperature' in sensor_type %}°C
@@ -350,9 +355,17 @@
     <div class="row">
         <div class="col-xl-12">
             <div class="card">
-                <div class="card-header">
-                    <h4 class="header-title mb-0">Sensor Reading History</h4>
-                    <p class="text-muted mb-0">All readings in stack format (newest first)</p>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="header-title mb-0">Sensor Reading History</h4>
+                        <p class="text-muted mb-0">Showing latest 3 readings (newest first)</p>
+                    </div>
+                    {% if first_device %}
+                    <a class="btn btn-sm btn-outline-primary"
+                        href="{% url 'hydroponics:sensor_history' %}?device_id={{ first_device.id }}">
+                        <i class="ti ti-list me-1"></i>View All
+                    </a>
+                    {% endif %}
                 </div>
                 <div class="card-body">
                     <div id="sensor-history-container"></div>
@@ -1174,7 +1187,8 @@
                                 valSpan.style.transition = 'opacity 0.2s';
                                 valSpan.style.opacity = '0.5';
                                 setTimeout(() => {
-                                    valSpan.innerText = Number(val).toFixed(1);
+                                    const isPh = uiType === 'pH';
+                                    valSpan.innerText = Number(val).toFixed(isPh ? 2 : 1);
                                     valSpan.style.opacity = '1';
                                 }, 200);
                             }
@@ -1201,7 +1215,7 @@
         const deviceId = deviceIdEl ? deviceIdEl.innerText : null;
 
         if (deviceId && window.SensorHistoryManager) {
-            window.SensorHistoryManager.displayHistory(deviceId, 'sensor-history-container');
+            window.SensorHistoryManager.displayHistory(deviceId, 'sensor-history-container', 3);
         }
     });
 </script>
