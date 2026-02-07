@@ -23,6 +23,16 @@ class User(AbstractUser):
     
     # Role field for user/admin access control
     role = models.CharField(_("Role"), max_length=10, choices=ROLE_CHOICES, default='user')
+    
+    # User code for unique identification
+    user_code = models.CharField(
+        _("User Code"),
+        max_length=10,
+        unique=True,
+        blank=True,
+        null=True,
+        help_text="Short user identifier (e.g., USR001, ADM001)"
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
