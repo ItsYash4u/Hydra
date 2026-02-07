@@ -130,14 +130,6 @@ const SENSOR_CONFIG = {
         max: 500,
         animationType: 'generic'
     },
-    'CO2': {
-        icon: 'ti-wind',
-        unit: 'ppm',
-        description: 'Carbon dioxide concentration for enhanced photosynthesis',
-        min: 0,
-        max: 2000,
-        animationType: 'co2'
-    },
     'Water Level': {
         icon: 'ti-waves',
         unit: 'cm',
@@ -545,7 +537,6 @@ function startSensorUpdates(sensorType, config) {
                 'pH': 'ph',
                 'EC': 'ec',
                 'TDS': 'tds',
-                'CO2': 'co2',
                 'Light': 'light',
                 'Water Temp': 'water_temp',
                 'Dissolved Oxygen': 'dissolved_oxygen'

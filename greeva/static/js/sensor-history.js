@@ -15,11 +15,11 @@ const SensorHistoryManager = (() => {
             const response = await fetch(
                 `${API_BASE}/sensors/history/?device_id=${encodeURIComponent(deviceId)}`
             );
-            
+
             if (!response.ok) {
                 throw new Error(`API error: ${response.status}`);
             }
-            
+
             const data = await response.json();
             return data.readings || [];
         } catch (error) {
@@ -134,6 +134,19 @@ const SensorHistoryManager = (() => {
                             </div>
                         </div>
 
+                        <!-- Water Temp -->
+                        <div class="col-6 col-md-3">
+                            <div class="text-center p-2 bg-light rounded">
+                                <small class="text-muted d-block">Water Temp</small>
+                                <h5 class="mb-0 fw-bold">
+                                    <span class="sensor-value-display">
+                                        ${reading.water_temp !== null ? reading.water_temp.toFixed(1) : '--'}
+                                    </span>
+                                    <small class="text-muted">°C</small>
+                                </h5>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -201,7 +214,7 @@ const SensorHistoryManager = (() => {
      */
     async function updateLatestReading(deviceId) {
         const readings = await fetchHistory(deviceId);
-        
+
         if (readings.length === 0) {
             return null;
         }
@@ -213,6 +226,7 @@ const SensorHistoryManager = (() => {
             ph: latest.ph,
             ec: latest.ec,
             co2: latest.co2,
+            water_temp: latest.water_temp,
             timestamp: latest.timestamp,
             date: latest.date
         };

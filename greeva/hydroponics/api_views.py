@@ -63,6 +63,7 @@ class GetDevicesAPIView(APIView):
                 device_sensors = json.loads(device.Device_Sensors) if device.Device_Sensors else []
             except (TypeError, ValueError):
                 device_sensors = []
+            device_sensors = ['water_temp' if str(s).strip().lower() == 'co2' else s for s in device_sensors]
             device_list.append({
                 'id': device.Device_ID,
                 'device_id': device.Device_ID,
@@ -218,13 +219,14 @@ class SensorDataView(APIView):
     permission_classes = [] 
 
     def get(self, request):
-        sync_nbri_records_if_stale()
+        # Removed sync call for better performance - sync should run on schedule
         device_id = request.query_params.get('device_id')
         if not device_id:
              return Response({'error': 'Device ID is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            device = Device.objects.filter(Device_ID=device_id).first()
+            # Optimized query - only fetch required fields
+            device = Device.objects.filter(Device_ID=device_id).only('Device_ID', 'Device_Sensors').first()
             if not device:
                 return Response({'error': 'Device not found.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -237,23 +239,24 @@ class SensorDataView(APIView):
                     'humidity': float(mapped.get('humidity')) if mapped.get('humidity') is not None else 0,
                     'ph': float(mapped.get('ph')) if mapped.get('ph') is not None else 0,
                     'ec': float(mapped.get('ec')) if mapped.get('ec') is not None else 0,
-                    'co2': float(mapped.get('co2')) if mapped.get('co2') is not None else 0,
+                    'co2': float(mapped.get('co2')) if mapped.get('co2') is not None else (float(mapped.get('water_temp')) if mapped.get('water_temp') is not None else 0),
                     'tds': 0,
                     'light': 0,
-                    'water_temp': 0,
+                    'water_temp': float(mapped.get('water_temp')) if mapped.get('water_temp') is not None else (float(mapped.get('co2')) if mapped.get('co2') is not None else 0),
                     'dissolved_oxygen': 0,
                     'timestamp': (latest_doser.source_timestamp or latest_doser.received_at).isoformat() if (latest_doser.source_timestamp or latest_doser.received_at) else None
                 }
                 return Response(data)
 
             try:
-                qs = SensorValue.objects.filter(device_id=device_id).order_by('-timestamp')
+                # Optimized query with limit for better performance
+                qs = SensorValue.objects.filter(device_id=device_id).order_by('-timestamp')[:1]
                 latest = qs.first()
             except Exception:
                 latest = (
                     SensorValue.objects
                     .filter(device_id=device_id)
-                    .order_by('-date')
+                    .order_by('-date')[:1]
                     .first()
                 )
 
@@ -264,17 +267,20 @@ class SensorDataView(APIView):
                     raw_selected = []
                 selected = {str(s).strip().lower() for s in raw_selected if str(s).strip()}
                 if not selected:
-                    selected = {'temperature', 'humidity', 'ph', 'ec', 'co2'}
+                    selected = {'temperature', 'humidity', 'ph', 'ec', 'water_temp'}
+                if 'co2' in selected:
+                    selected.discard('co2')
+                    selected.add('water_temp')
 
                 data = {
                     'temperature': float(latest.temperature) if 'temperature' in selected and latest.temperature is not None else 0,
                     'humidity': float(latest.humidity) if 'humidity' in selected and latest.humidity is not None else 0,
                     'ph': float(latest.pH) if 'ph' in selected and latest.pH is not None else 0,
                     'ec': float(latest.EC) if 'ec' in selected and latest.EC is not None else 0,
-                    'co2': float(latest.CO2) if 'co2' in selected and latest.CO2 is not None else 0,
+                    'co2': float(latest.CO2) if 'water_temp' in selected and latest.CO2 is not None else 0,
                     'tds': 0,
                     'light': 0,
-                    'water_temp': 0,
+                    'water_temp': float(latest.CO2) if 'water_temp' in selected and latest.CO2 is not None else 0,
                     'dissolved_oxygen': 0,
                     'timestamp': latest.timestamp.isoformat() if latest.timestamp else str(latest.date)
                 }
@@ -298,7 +304,7 @@ class SensorHistoryView(APIView):
     permission_classes = []
 
     def get(self, request):
-        sync_nbri_records_if_stale()
+        # Removed sync call for better performance - sync should run on schedule
         device_id = request.query_params.get('device_id')
         if not device_id:
             return Response({'error': 'Device ID is required.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -322,6 +328,7 @@ class SensorHistoryView(APIView):
                         'ph': float(mapped.get('ph')) if mapped.get('ph') is not None else None,
                         'ec': float(mapped.get('ec')) if mapped.get('ec') is not None else None,
                         'co2': float(mapped.get('co2')) if mapped.get('co2') is not None else None,
+                        'water_temp': float(mapped.get('water_temp')) if mapped.get('water_temp') is not None else (float(mapped.get('co2')) if mapped.get('co2') is not None else None),
                     })
 
                 return Response({
@@ -344,6 +351,7 @@ class SensorHistoryView(APIView):
                     'ph': float(sensor_value.pH) if sensor_value.pH is not None else None,
                     'ec': float(sensor_value.EC) if sensor_value.EC is not None else None,
                     'co2': float(sensor_value.CO2) if sensor_value.CO2 is not None else None,
+                    'water_temp': float(sensor_value.CO2) if sensor_value.CO2 is not None else None,
                 })
 
             return Response({
@@ -364,6 +372,7 @@ class SensorHistoryView(APIView):
                     'ph': float(sensor_value.pH) if sensor_value.pH is not None else None,
                     'ec': float(sensor_value.EC) if sensor_value.EC is not None else None,
                     'co2': float(sensor_value.CO2) if sensor_value.CO2 is not None else None,
+                    'water_temp': float(sensor_value.CO2) if sensor_value.CO2 is not None else None,
                 })
 
             return Response({
@@ -394,14 +403,16 @@ class SensorIngestView(APIView):
         data = request.data
         
         try:
+            # Create sensor value with proper timestamp for real-time ordering
             SensorValue.objects.create(
                 device_id=device_id,
                 temperature=data.get('temperature'),
                 humidity=data.get('humidity'),
                 pH=data.get('ph'),
                 EC=data.get('ec'),
-                CO2=data.get('co2'),
-                date=timezone.now().date()
+                CO2=data.get('water_temp') if data.get('water_temp') is not None else data.get('co2'),
+                date=timezone.now().date(),
+                timestamp=timezone.now()  # CRITICAL: Set timestamp for real-time updates
             )
             return Response({"status": "success", "message": "Data saved to SensorValue"}, status=status.HTTP_201_CREATED)
         except Exception as e:

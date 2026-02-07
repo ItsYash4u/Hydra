@@ -40,11 +40,12 @@ def map_payload_to_sensors(payload: dict):
                 return lower[key]
         return None
 
-    temperature = pick(["temp", "temperature", "t", "2"])
+    temperature = pick(["air_temp", "temperature", "airtemp"])
     ph = pick(["ph", "0"])
     ec = pick(["ec", "1"])
-    humidity = pick(["humidity", "hum", "humid", "rh"])
+    humidity = pick(["humidity", "hum", "humid", "rh", "1"])
     co2 = pick(["co2"])
+    water_temp = pick(["water_temp", "watertemp", "water_temperature", "wtemp"])
 
     return {
         "temperature": temperature,
@@ -52,6 +53,7 @@ def map_payload_to_sensors(payload: dict):
         "ph": ph,
         "ec": ec,
         "co2": co2,
+        "water_temp": water_temp,
     }
 
 
@@ -155,7 +157,20 @@ def sync_nbri_records():
         if not isinstance(ph_item, dict):
             ph_item = {"value": ph_item}
         if not isinstance(temp_item, dict):
-            temp_item = {"value": temp_item}
+            temp_item = {" value": temp_item}
+
+        # Rename temp fields to avoid collision
+        # pH API has water temperature
+        if "temp" in ph_item:
+            ph_item["water_temp"] = ph_item.pop("temp")
+        if "2" in ph_item:  # temp is also at index "2"
+            ph_item["water_temp"] = ph_item.pop("2")
+        
+        # Temp API has air temperature  
+        if "temp" in temp_item:
+            temp_item["air_temp"] = temp_item.pop("temp")
+        if "0" in temp_item:  # temp is also at index "0"
+            temp_item["air_temp"] = temp_item.pop("0")
 
         combined = {}
         combined.update(ph_item)

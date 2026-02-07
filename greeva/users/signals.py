@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.signals import user_logged_in
-from django.core.mail import send_mail
+from greeva.utils.email_utils import send_templated_email
 from .models import OTP, User
 import random
 import logging
@@ -25,17 +25,24 @@ def send_otp_email(user):
 
     # Custom Email Content
     subject = "Smart IoT Login Verification"
-    message = f"Here your smart iot otp is {code}"
     
     try:
-        send_mail(
-            subject,
-            message,
-            'noreply@hydroponics.local',
-            [user.email],
-            fail_silently=False,
+        send_templated_email(
+            subject=subject,
+            to_emails=user.email,
+            template_name='emails/otp_email.html',
+            text_template_name='emails/otp_email.txt',
+            context={
+                'subject': subject,
+                'otp': code,
+                'recipient_name': user.name or '',
+                'brand_name': 'Smart IOT IITG',
+                'brand_tagline': 'Hydroponics Monitoring Platform',
+                'footer_note': 'If you did not request this code, you can ignore this email.',
+                'otp_valid_minutes': '10',
+            },
         )
-        print(f"✅ OTP Email Sent to {user.email}: {message}")
+        print(f"OTP Email Sent to {user.email}: {code}")
         logger.info(f"OTP sent to {user.email}")
     except Exception as e:
         print(f"❌ Failed to send OTP to {user.email}: {e}")

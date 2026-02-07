@@ -66,12 +66,14 @@ class DeviceRegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('User context is required.')
 
         device_sensors = validated_data.pop('device_sensors', [])
-        allowed = {'temperature', 'humidity', 'ph', 'ec', 'co2'}
+        allowed = {'temperature', 'humidity', 'ph', 'ec', 'water_temp'}
         normalized = []
         for sensor in device_sensors:
             if not sensor:
                 continue
             key = sensor.strip().lower()
+            if key == 'co2':
+                key = 'water_temp'
             if key in allowed and key not in normalized:
                 normalized.append(key)
 
@@ -103,7 +105,7 @@ class DeviceRegistrationSerializer(serializers.ModelSerializer):
                         'humidity': 0 if 'humidity' in normalized else None,
                         'pH': 0 if 'ph' in normalized else None,
                         'EC': 0 if 'ec' in normalized else None,
-                        'CO2': 0 if 'co2' in normalized else None,
+                        'CO2': 0 if 'water_temp' in normalized else None,
                     }
                     SensorValue.objects.create(**sensor_payload)
                 return device

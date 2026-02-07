@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.template import TemplateDoesNotExist
 from django.http import Http404
 from django.conf import settings
-from django.core.mail import send_mail
+from greeva.utils.email_utils import send_templated_email
 
 # -------------------------
 # Public / Landing Pages
@@ -175,15 +175,25 @@ def contact_view(request):
             error = "Please provide your email and message."
         else:
             subject = f"Smart IoT Contact: {name or email}"
-            body = f"From: {name or '-'}\\nEmail: {email}\\n\\n{message}"
             to_email = getattr(settings, 'CONTACT_EMAIL', None) or settings.DEFAULT_FROM_EMAIL
             try:
-                send_mail(
-                    subject,
-                    body,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [to_email],
-                    fail_silently=False
+                send_templated_email(
+                    subject=subject,
+                    to_emails=[to_email],
+                    template_name='emails/contact_message.html',
+                    text_template_name='emails/contact_message.txt',
+                    context={
+                        'subject': subject,
+                        'name': name or '-',
+                        'email': email,
+                        'phone': '--',
+                        'message': message,
+                        'source_label': 'Contact',
+                        'brand_name': 'Smart IOT IITG',
+                        'brand_tagline': 'Hydroponics Monitoring Platform',
+                        'footer_note': 'You can reply to this email to reach the sender.',
+                    },
+                    reply_to=[email],
                 )
                 success = True
             except Exception:

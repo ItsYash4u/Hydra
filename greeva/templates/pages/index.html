@@ -300,6 +300,8 @@
                                         <i class="ti ti-flask"></i>
                                         {% elif 'Light' in sensor_type %}
                                         <i class="ti ti-sun"></i>
+                                        {% elif 'Water Temp' in sensor_type %}
+                                        <i class="ti ti-wave-square"></i>
                                         {% else %}
                                         <i class="ti ti-activity"></i>
                                         {% endif %}
@@ -326,6 +328,7 @@
                                         {% elif 'Humidity' in sensor_type %}%
                                         {% elif 'pH' in sensor_type %}pH
                                         {% elif 'Light' in sensor_type %}hrs
+                                        {% elif 'Water Temp' in sensor_type %}°C
                                         {% else %}units{% endif %}
                                     </small>
                                 </h3>
@@ -546,8 +549,8 @@
 
 
 
-  
-       
+
+
 
     <!-- Farm Locations (Map Preview) -->
     <div class="row">
@@ -975,33 +978,6 @@
                             </div>
                         </div>
 
-                        <!-- CO2 -->
-                        <div class="col-md-6">
-                            <div class="sensor-toggle-card p-3 border rounded"
-                                style="background: #fff; transition: all 0.3s ease; cursor: pointer;"
-                                onmouseover="this.style.borderColor='#198754'; this.style.boxShadow='0 4px 12px rgba(25,135,84,0.15)'"
-                                onmouseout="this.style.borderColor='#dee2e6'; this.style.boxShadow='none'">
-                                <div class="d-flex align-items-start justify-content-between">
-                                    <div class="d-flex align-items-start gap-3 flex-grow-1">
-                                        <div
-                                            style="width: 40px; height: 40px; background: rgba(108,117,125,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                            <i class="ti ti-wind fs-4 text-secondary"></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <div class="fw-semibold mb-1">CO₂</div>
-                                            <small class="text-muted" style="font-size: 11px; line-height: 1.4;">Carbon
-                                                dioxide concentration</small>
-                                        </div>
-                                    </div>
-                                    <div class="form-check form-switch ms-2">
-                                        <input class="form-check-input" type="checkbox" id="check-co2"
-                                            onchange="toggleSensor('CO2')"
-                                            style="cursor: pointer; width: 44px; height: 24px;">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- Water Level -->
                         <div class="col-md-6">
                             <div class="sensor-toggle-card p-3 border rounded"
@@ -1136,10 +1112,14 @@
     }
 </script>
 
-<!-- Auto-Update Sensor Script (Added by Agent) -->
+<!-- Auto-Update Sensor Script (Optimized for Real-Time Updates) -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const POLL_INTERVAL = 5000; // 5 Seconds
+        const POLL_INTERVAL = 2000; // 2 Seconds (optimized for faster updates)
+        const MAX_RETRY_INTERVAL = 30000; // Max 30 seconds backoff
+        let currentInterval = POLL_INTERVAL;
+        let consecutiveErrors = 0;
+        let pollTimer = null;
 
         function updateSensors() {
             // Retrieve Active Device ID if present (optional)
@@ -1152,8 +1132,17 @@
             }
 
             fetch(url)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    // Reset error counter on success
+                    consecutiveErrors = 0;
+                    currentInterval = POLL_INTERVAL;
+
                     // Mapping API keys to UI labels used in template
                     const mapping = {
                         'temperature': 'Temperature',
@@ -1161,7 +1150,6 @@
                         'ph': 'pH',
                         'ec': 'EC',
                         'tds': 'TDS',
-                        'co2': 'CO2',
                         'light': 'Light',
                         'water_temp': 'Water Temp',
                         'dissolved_oxygen': 'Dissolved Oxygen'
@@ -1175,10 +1163,6 @@
                         if (!uiType) return;
 
                         // Find all cards matching this type
-                        // We select elements containing the specific data-sensor-type
-                        // Note: The template generates `data-sensor-type="{{ sensor_type }}"`
-                        // We try to match loosely (contains)
-
                         const cards = document.querySelectorAll(`[data-sensor-type*="${uiType}"]`);
                         cards.forEach(card => {
                             const valSpan = card.querySelector('.sensor-value');
@@ -1198,26 +1182,174 @@
                         });
                     });
                 })
-                .catch(err => console.error('Sensor poll failed', err));
+                .catch(err => {
+                    console.error('Sensor poll failed:', err);
+
+                    // Exponential backoff on errors
+                    consecutiveErrors++;
+                    currentInterval = Math.min(
+                        POLL_INTERVAL * Math.pow(2, consecutiveErrors),
+                        MAX_RETRY_INTERVAL
+                    );
+                    console.warn(`Backing off to ${currentInterval}ms after ${consecutiveErrors} errors`);
+                })
+                .finally(() => {
+                    // Schedule next poll with current interval
+                    if (pollTimer) clearTimeout(pollTimer);
+                    pollTimer = setTimeout(updateSensors, currentInterval);
+                });
         }
 
-        // Start Polling
-        setInterval(updateSensors, POLL_INTERVAL);
-        // Initial call
-        // setTimeout(updateSensors, 1000);
+        // Start initial poll
+        updateSensors();
     });
 </script>
 
-<!-- Sensor History Init -->
+
+<!-- Sensor Animation Library (MUST load first) -->
+<script src="{% static 'js/sensor-animations.js' %}"></script>
+
+<!-- Sensor Reading History -->
+<script src="{% static 'js/sensor-history.js' %}"></script>
+
+<!-- Dashboard Sensor History Widget (Latest 3 Readings) -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // Load latest 3 sensor readings for dashboard widget
         const deviceIdEl = document.getElementById('active-device-id');
-        const deviceId = deviceIdEl ? deviceIdEl.innerText : null;
+        const historyContainer = document.getElementById('sensor-history-container');
 
-        if (deviceId && window.SensorHistoryManager) {
-            window.SensorHistoryManager.displayHistory(deviceId, 'sensor-history-container', 3);
+        if (deviceIdEl && historyContainer && window.SensorHistoryManager) {
+            const deviceId = deviceIdEl.innerText;
+            if (deviceId && deviceId !== 'None') {
+                // Display only the latest 3 readings
+                window.SensorHistoryManager.displayHistory(deviceId, 'sensor-history-container', 3);
+            }
         }
     });
+</script>
+
+<!-- Enhanced Dashboard Interactions (Sensor Customization & Detail Popups) -->
+<script src="{% static 'js/dashboard-interactions-enhanced.js' %}"></script>
+
+<!-- Projects Analytics Dashboard App js -->
+<script src="{% static 'js/pages/dashboard.js' %}"></script>
+
+<!-- Multi-Device Selector -->
+<script src="{% static 'js/dashboard-device-selector.js' %}"></script>
+
+<!-- Leaflet for Map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script id="dashboard-context" type="application/json">
+    {
+        "online_devices": {{ online_devices|default:0 }},
+        "offline_devices": {{ offline_devices|default:0 }},
+        "total_devices": {{ total_devices|default:0 }},
+        "devices": [
+            {% for device in devices %}
+            {
+                "id": "{{ device.id }}",
+                "name": "{{ device.name }}",
+                "status": "{{ device.status }}"
+            }{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        ],
+        "user": {
+            {% if request.user.is_authenticated %}
+            "name": "{{ request.user.name|default:request.user.email|default:'User' }}",
+            "email": "{{ request.user.email|default:'' }}",
+            "role": "{{ request.user.role|default:'user' }}"
+            {% else %}
+            "name": "Guest",
+            "email": "",
+            "role": "visitor"
+            {% endif %}
+        }
+    }
+</script>
+
+<!-- Enabled Sensors Context (for frontend initialization) -->
+<script id="enabled-sensors-context" type="application/json">
+    {
+        {% for sensor_name, is_enabled in enabled_sensors.items %}
+        "{{ sensor_name }}": {{ is_enabled|lower }}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    }
+</script>
+
+<!-- Auto-Update Sensor Script (Optimized for Real-Time Updates) -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const POLL_INTERVAL = 2000; // 2 Seconds (optimized for faster updates)
+        const MAX_RETRY_INTERVAL = 30000; // Max 30 seconds backoff
+        let currentInterval = POLL_INTERVAL;
+        let consecutiveErrors = 0;
+        let pollTimer = null;
+
+        function updateSensors() {
+            // Retrieve Active Device ID if present (optional)
+            const deviceIdEl = document.getElementById('active-device-id');
+            const deviceId = deviceIdEl ? deviceIdEl.innerText : null;
+
+            let url = '/api/devices/sensors/latest/';
+            if (deviceId && deviceId !== 'None') {
+                url += `?device_id=${encodeURIComponent(deviceId)}`;
+            }
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Reset error counter on success
+                    consecutiveErrors = 0;
+                    currentInterval = POLL_INTERVAL;
+
+                    // Mapping API keys to UI labels used in template
+                    const mapping = {
+                        'temperature': 'Temperature',
+                        'humidity': 'Humidity',
+                        'ph': 'pH',
+                        'ec': 'EC',
+                        'tds': 'TDS',
+                        'light': 'Light',
+                        'water_temp': 'Water Temp',
+                        'dissolved_oxygen': 'Dissolved Oxygen'
+                    };
+
+                    Object.keys(data).forEach(key => {
+                        const val = data[key];
+                        if (val === null || val === undefined) return;
+
+                        const uiType = mapping[key];
+                        if (!uiType) return;
+
+                        // Find all cards matching this type
+                        const cards = document.querySelectorAll(`[data-sensor-type*="${uiType}"]`);
+                        cards.forEach(card => {
+                            const valSpan = card.querySelector('.sensor-value');
+                            if (valSpan) {
+                                // Simple animation
+                                valSpan.style.transition = 'opacity 0.2s';
+                                valSpan.style.opacity = '0.5';
+                                setTimeout(() => {
+                                    const isPh = uiType === 'pH';
+                                    valSpan.innerText = Number(val).toFixed(isPh ? 2 : 1);
+                                    valSpan.style.opacity = '1';
+                                }, 200);
+                            }
+                            const deviceIdEl = document.getElementById('active-device-id');
+                            const deviceId = deviceIdEl ? deviceIdEl.innerText : null;
+
+                            if (deviceId && window.SensorHistoryManager) {
+                                window.SensorHistoryManager.displayHistory(deviceId, 'sensor-history-container', 3);
+                            }
+                        });
 </script>
 
 <!-- Add Device Modal -->
@@ -1236,11 +1368,14 @@
                 <form id="addDeviceForm">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label for="deviceNameInput" class="form-label">Device Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="deviceNameInput" placeholder="e.g., Greenhouse A" required>
+                        <label for="deviceNameInput" class="form-label">Device Name <span
+                                class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="deviceNameInput" placeholder="e.g., Greenhouse A"
+                            required>
                     </div>
                     <div class="mb-3">
-                        <label for="deviceTypeSelect" class="form-label">Device Type <span class="text-danger">*</span></label>
+                        <label for="deviceTypeSelect" class="form-label">Device Type <span
+                                class="text-danger">*</span></label>
                         <select class="form-select" id="deviceTypeSelect" required>
                             <option value="">Select device type</option>
                             <option value="AIR">Air Sensor Device</option>
@@ -1256,34 +1391,39 @@
                         <div id="sensorGroupAir" class="row g-2 d-none">
                             <div class="col-md-4">
                                 <div class="form-check">
-                                    <input class="form-check-input sensor-checkbox" type="checkbox" value="temperature" id="sensorTemperature">
+                                    <input class="form-check-input sensor-checkbox" type="checkbox" value="temperature"
+                                        id="sensorTemperature">
                                     <label class="form-check-label" for="sensorTemperature">Temperature</label>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-check">
-                                    <input class="form-check-input sensor-checkbox" type="checkbox" value="humidity" id="sensorHumidity">
+                                    <input class="form-check-input sensor-checkbox" type="checkbox" value="humidity"
+                                        id="sensorHumidity">
                                     <label class="form-check-label" for="sensorHumidity">Humidity</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-check">
-                                    <input class="form-check-input sensor-checkbox" type="checkbox" value="co2" id="sensorCO2">
-                                    <label class="form-check-label" for="sensorCO2">CO2</label>
                                 </div>
                             </div>
                         </div>
                         <div id="sensorGroupWater" class="row g-2 d-none">
                             <div class="col-md-4">
                                 <div class="form-check">
-                                    <input class="form-check-input sensor-checkbox" type="checkbox" value="ph" id="sensorPH">
+                                    <input class="form-check-input sensor-checkbox" type="checkbox" value="ph"
+                                        id="sensorPH">
                                     <label class="form-check-label" for="sensorPH">pH</label>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-check">
-                                    <input class="form-check-input sensor-checkbox" type="checkbox" value="ec" id="sensorEC">
+                                    <input class="form-check-input sensor-checkbox" type="checkbox" value="ec"
+                                        id="sensorEC">
                                     <label class="form-check-label" for="sensorEC">EC</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input sensor-checkbox" type="checkbox" value="water_temp"
+                                        id="sensorWaterTemp">
+                                    <label class="form-check-label" for="sensorWaterTemp">Water Temp</label>
                                 </div>
                             </div>
                         </div>
@@ -1295,12 +1435,16 @@
 
                     <div class="row g-2 mb-3">
                         <div class="col-md-6">
-                            <label for="latitudeInput" class="form-label">Latitude <span class="text-danger">*</span></label>
-                            <input type="number" step="0.000001" class="form-control" id="latitudeInput" placeholder="e.g., 20.590000" required>
+                            <label for="latitudeInput" class="form-label">Latitude <span
+                                    class="text-danger">*</span></label>
+                            <input type="number" step="0.000001" class="form-control" id="latitudeInput"
+                                placeholder="e.g., 20.590000" required>
                         </div>
                         <div class="col-md-6">
-                            <label for="longitudeInput" class="form-label">Longitude <span class="text-danger">*</span></label>
-                            <input type="number" step="0.000001" class="form-control" id="longitudeInput" placeholder="e.g., 78.960000" required>
+                            <label for="longitudeInput" class="form-label">Longitude <span
+                                    class="text-danger">*</span></label>
+                            <input type="number" step="0.000001" class="form-control" id="longitudeInput"
+                                placeholder="e.g., 78.960000" required>
                         </div>
                     </div>
                 </form>
@@ -1316,194 +1460,194 @@
 </div>
 
 <script>
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    function getCsrfToken() {
-        const input = document.querySelector('#addDeviceForm input[name="csrfmiddlewaretoken"]');
-        if (input && input.value) {
-            return input.value;
-        }
-        return getCookie('csrftoken');
-    }
+                        function getCookie(name) {
+                            let cookieValue = null;
+                            if (document.cookie && document.cookie !== '') {
+                                const cookies = document.cookie.split(';');
+                                for (let i = 0; i < cookies.length; i++) {
+                                    const cookie = cookies[i].trim();
+                                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                        break;
+                                    }
+                                }
+                            }
+                            return cookieValue;
+                        }
+                        function getCsrfToken() {
+                            const input = document.querySelector('#addDeviceForm input[name="csrfmiddlewaretoken"]');
+                            if (input && input.value) {
+                                return input.value;
+                            }
+                            return getCookie('csrftoken');
+                        }
 
-    const addDeviceModal = document.getElementById('addDeviceModal');
-    const deviceTypeSelect = document.getElementById('deviceTypeSelect');
-    const sensorGroupAir = document.getElementById('sensorGroupAir');
-    const sensorGroupWater = document.getElementById('sensorGroupWater');
-    const sensorSelectionHint = document.getElementById('sensorSelectionHint');
-    const selectedSensorsList = document.getElementById('selectedSensorsList');
-    const sensorSelections = { AIR: [], WATER: [] };
+                        const addDeviceModal = document.getElementById('addDeviceModal');
+                        const deviceTypeSelect = document.getElementById('deviceTypeSelect');
+                        const sensorGroupAir = document.getElementById('sensorGroupAir');
+                        const sensorGroupWater = document.getElementById('sensorGroupWater');
+                        const sensorSelectionHint = document.getElementById('sensorSelectionHint');
+                        const selectedSensorsList = document.getElementById('selectedSensorsList');
+                        const sensorSelections = { AIR: [], WATER: [] };
 
-    function getGroupCheckboxes(type) {
-        if (type === 'AIR') {
-            return sensorGroupAir.querySelectorAll('.sensor-checkbox');
-        }
-        if (type === 'WATER') {
-            return sensorGroupWater.querySelectorAll('.sensor-checkbox');
-        }
-        return [];
-    }
+                        function getGroupCheckboxes(type) {
+                            if (type === 'AIR') {
+                                return sensorGroupAir.querySelectorAll('.sensor-checkbox');
+                            }
+                            if (type === 'WATER') {
+                                return sensorGroupWater.querySelectorAll('.sensor-checkbox');
+                            }
+                            return [];
+                        }
 
-    function getSensorLabel(cb) {
-        const labelEl = cb.closest('.form-check')?.querySelector('label');
-        return labelEl ? labelEl.textContent.trim() : cb.value;
-    }
+                        function getSensorLabel(cb) {
+                            const labelEl = cb.closest('.form-check')?.querySelector('label');
+                            return labelEl ? labelEl.textContent.trim() : cb.value;
+                        }
 
-    function storeSelectionsFor(type) {
-        const selected = Array.from(getGroupCheckboxes(type))
-            .filter(cb => cb.checked)
-            .map(cb => getSensorLabel(cb));
-        sensorSelections[type] = selected;
-    }
+                        function storeSelectionsFor(type) {
+                            const selected = Array.from(getGroupCheckboxes(type))
+                                .filter(cb => cb.checked)
+                                .map(cb => getSensorLabel(cb));
+                            sensorSelections[type] = selected;
+                        }
 
-    function restoreSelectionsFor(type) {
-        const selected = new Set(sensorSelections[type] || []);
-        getGroupCheckboxes(type).forEach(cb => {
-            const label = getSensorLabel(cb);
-            cb.checked = selected.has(label);
-        });
-    }
+                        function restoreSelectionsFor(type) {
+                            const selected = new Set(sensorSelections[type] || []);
+                            getGroupCheckboxes(type).forEach(cb => {
+                                const label = getSensorLabel(cb);
+                                cb.checked = selected.has(label);
+                            });
+                        }
 
-    function updateSelectedSensors() {
-        const type = deviceTypeSelect.value;
-        if (type === 'AIR' || type === 'WATER') {
-            storeSelectionsFor(type);
-        }
+                        function updateSelectedSensors() {
+                            const type = deviceTypeSelect.value;
+                            if (type === 'AIR' || type === 'WATER') {
+                                storeSelectionsFor(type);
+                            }
 
-        const parts = [];
-        if (sensorSelections.AIR.length) {
-            parts.push(`Air Device: ${sensorSelections.AIR.join(', ')}`);
-        }
-        if (sensorSelections.WATER.length) {
-            parts.push(`Water Device: ${sensorSelections.WATER.join(', ')}`);
-        }
-        selectedSensorsList.textContent = parts.length ? parts.join(' | ') : 'None';
-    }
+                            const parts = [];
+                            if (sensorSelections.AIR.length) {
+                                parts.push(`Air Device: ${sensorSelections.AIR.join(', ')}`);
+                            }
+                            if (sensorSelections.WATER.length) {
+                                parts.push(`Water Device: ${sensorSelections.WATER.join(', ')}`);
+                            }
+                            selectedSensorsList.textContent = parts.length ? parts.join(' | ') : 'None';
+                        }
 
-    function updateSensorGroups() {
-        const type = deviceTypeSelect.value;
-        if (!type) {
-            sensorGroupAir.classList.add('d-none');
-            sensorGroupWater.classList.add('d-none');
-            sensorSelectionHint.classList.remove('d-none');
-            updateSelectedSensors();
-            return;
-        }
+                        function updateSensorGroups() {
+                            const type = deviceTypeSelect.value;
+                            if (!type) {
+                                sensorGroupAir.classList.add('d-none');
+                                sensorGroupWater.classList.add('d-none');
+                                sensorSelectionHint.classList.remove('d-none');
+                                updateSelectedSensors();
+                                return;
+                            }
 
-        sensorSelectionHint.classList.add('d-none');
+                            sensorSelectionHint.classList.add('d-none');
 
-        if (type === 'AIR') {
-            sensorGroupAir.classList.remove('d-none');
-            sensorGroupWater.classList.add('d-none');
-            restoreSelectionsFor('AIR');
-        } else if (type === 'WATER') {
-            sensorGroupWater.classList.remove('d-none');
-            sensorGroupAir.classList.add('d-none');
-            restoreSelectionsFor('WATER');
-        }
+                            if (type === 'AIR') {
+                                sensorGroupAir.classList.remove('d-none');
+                                sensorGroupWater.classList.add('d-none');
+                                restoreSelectionsFor('AIR');
+                            } else if (type === 'WATER') {
+                                sensorGroupWater.classList.remove('d-none');
+                                sensorGroupAir.classList.add('d-none');
+                                restoreSelectionsFor('WATER');
+                            }
 
-        updateSelectedSensors();
-    }
+                            updateSelectedSensors();
+                        }
 
-    deviceTypeSelect.addEventListener('change', updateSensorGroups);
-    document.querySelectorAll('.sensor-checkbox').forEach(cb => {
-        cb.addEventListener('change', updateSelectedSensors);
-    });
+                        deviceTypeSelect.addEventListener('change', updateSensorGroups);
+                        document.querySelectorAll('.sensor-checkbox').forEach(cb => {
+                            cb.addEventListener('change', updateSelectedSensors);
+                        });
 
-    document.addEventListener('DOMContentLoaded', () => {
-        updateSensorGroups();
-        updateSelectedSensors();
-    });
+                        document.addEventListener('DOMContentLoaded', () => {
+                            updateSensorGroups();
+                            updateSelectedSensors();
+                        });
 
-    document.getElementById('saveDeviceBtn').addEventListener('click', async () => {
-        const errorDiv = document.getElementById('addDeviceError');
-        errorDiv.classList.add('d-none');
-        const deviceName = document.getElementById('deviceNameInput').value.trim();
-        const deviceType = deviceTypeSelect.value;
-        updateSelectedSensors();
-        const selectionsByType = {
-            AIR: Array.from(getGroupCheckboxes('AIR')).filter(cb => cb.checked).map(cb => cb.value),
-            WATER: Array.from(getGroupCheckboxes('WATER')).filter(cb => cb.checked).map(cb => cb.value)
-        };
-        const typesToCreate = [];
-        if (selectionsByType.AIR.length) typesToCreate.push('AIR');
-        if (selectionsByType.WATER.length) typesToCreate.push('WATER');
-        const latitude = document.getElementById('latitudeInput').value;
-        const longitude = document.getElementById('longitudeInput').value;
+                        document.getElementById('saveDeviceBtn').addEventListener('click', async () => {
+                            const errorDiv = document.getElementById('addDeviceError');
+                            errorDiv.classList.add('d-none');
+                            const deviceName = document.getElementById('deviceNameInput').value.trim();
+                            const deviceType = deviceTypeSelect.value;
+                            updateSelectedSensors();
+                            const selectionsByType = {
+                                AIR: Array.from(getGroupCheckboxes('AIR')).filter(cb => cb.checked).map(cb => cb.value),
+                                WATER: Array.from(getGroupCheckboxes('WATER')).filter(cb => cb.checked).map(cb => cb.value)
+                            };
+                            const typesToCreate = [];
+                            if (selectionsByType.AIR.length) typesToCreate.push('AIR');
+                            if (selectionsByType.WATER.length) typesToCreate.push('WATER');
+                            const latitude = document.getElementById('latitudeInput').value;
+                            const longitude = document.getElementById('longitudeInput').value;
 
-        if (!deviceName || !deviceType) {
-            errorDiv.textContent = 'Device name and type are required.';
-            errorDiv.classList.remove('d-none');
-            return;
-        }
-        if (!typesToCreate.length) {
-            errorDiv.textContent = 'Please select at least one sensor for Air or Water.';
-            errorDiv.classList.remove('d-none');
-            return;
-        }
+                            if (!deviceName || !deviceType) {
+                                errorDiv.textContent = 'Device name and type are required.';
+                                errorDiv.classList.remove('d-none');
+                                return;
+                            }
+                            if (!typesToCreate.length) {
+                                errorDiv.textContent = 'Please select at least one sensor for Air or Water.';
+                                errorDiv.classList.remove('d-none');
+                                return;
+                            }
 
-        if (!latitude || !longitude) {
-            errorDiv.textContent = 'Latitude and longitude are required.';
-            errorDiv.classList.remove('d-none');
-            return;
-        }
-        const latVal = parseFloat(latitude);
-        const lonVal = parseFloat(longitude);
-        if (Number.isNaN(latVal) || Number.isNaN(lonVal) || latVal < -90 || latVal > 90 || lonVal < -180 || lonVal > 180) {
-            errorDiv.textContent = 'Please enter valid latitude (-90 to 90) and longitude (-180 to 180).';
-            errorDiv.classList.remove('d-none');
-            return;
-        }
+                            if (!latitude || !longitude) {
+                                errorDiv.textContent = 'Latitude and longitude are required.';
+                                errorDiv.classList.remove('d-none');
+                                return;
+                            }
+                            const latVal = parseFloat(latitude);
+                            const lonVal = parseFloat(longitude);
+                            if (Number.isNaN(latVal) || Number.isNaN(lonVal) || latVal < -90 || latVal > 90 || lonVal < -180 || lonVal > 180) {
+                                errorDiv.textContent = 'Please enter valid latitude (-90 to 90) and longitude (-180 to 180).';
+                                errorDiv.classList.remove('d-none');
+                                return;
+                            }
 
-        try {
-            for (const type of typesToCreate) {
-                const payload = {
-                    device_name: deviceName,
-                    device_type: type,
-                    device_sensors: selectionsByType[type],
-                    latitude: latVal,
-                    longitude: lonVal
-                };
-                const res = await fetch('/api/devices/add-device/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCsrfToken()
-                    },
-                    credentials: 'same-origin',
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json().catch(() => ({}));
-                if (!res.ok) {
-                    const label = type === 'AIR' ? 'Air' : 'Water';
-                    const msg = data.error || (data.device_sensors && data.device_sensors[0]) ||
-                        (data.non_field_errors && data.non_field_errors[0]) || `Failed to add ${label} device`;
-                    errorDiv.textContent = msg;
-                    errorDiv.classList.remove('d-none');
-                    return;
-                }
-            }
+                            try {
+                                for (const type of typesToCreate) {
+                                    const payload = {
+                                        device_name: deviceName,
+                                        device_type: type,
+                                        device_sensors: selectionsByType[type],
+                                        latitude: latVal,
+                                        longitude: lonVal
+                                    };
+                                    const res = await fetch('/api/devices/add-device/', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRFToken': getCsrfToken()
+                                        },
+                                        credentials: 'same-origin',
+                                        body: JSON.stringify(payload)
+                                    });
+                                    const data = await res.json().catch(() => ({}));
+                                    if (!res.ok) {
+                                        const label = type === 'AIR' ? 'Air' : 'Water';
+                                        const msg = data.error || (data.device_sensors && data.device_sensors[0]) ||
+                                            (data.non_field_errors && data.non_field_errors[0]) || `Failed to add ${label} device`;
+                                        errorDiv.textContent = msg;
+                                        errorDiv.classList.remove('d-none');
+                                        return;
+                                    }
+                                }
 
-            const modal = bootstrap.Modal.getInstance(addDeviceModal);
-            modal.hide();
-            window.location.reload();
-        } catch (e) {
-            errorDiv.textContent = 'An error occurred while saving device';
-            errorDiv.classList.remove('d-none');
-        }
-    });
+                                const modal = bootstrap.Modal.getInstance(addDeviceModal);
+                                modal.hide();
+                                window.location.reload();
+                            } catch (e) {
+                                errorDiv.textContent = 'An error occurred while saving device';
+                                errorDiv.classList.remove('d-none');
+                            }
+                        });
 </script>
 
 <script src="{% static 'js/dashboard-init.js' %}"></script>

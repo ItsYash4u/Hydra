@@ -1,0 +1,8 @@
+New {{ source_label|default:"Contact" }} message received
+
+Name: {{ name|default:"-" }}
+Email: {{ email|default:"-" }}
+Phone: {{ phone|default:"-" }}
+
+Message:
+{{ message|default:"(no message)" }}

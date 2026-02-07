@@ -1,4 +1,12 @@
-# Using a slim Python image for a smaller footprint
+# --- Stage 1: Build Frontend ---
+FROM node:20-slim AS frontend-builder
+WORKDIR /app/client
+COPY client/package*.json ./
+RUN npm install
+COPY client/ ./
+RUN npm run build
+
+# --- Stage 2: Final Image ---
 FROM python:3.12-slim-bookworm
 
 # Set environment variables
@@ -26,14 +34,16 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 # Copy project files
 COPY . .
 
+# Copy built frontend assets to static root
+# Assuming the frontend is built into client/dist and we want it in staticroot/client
+COPY --from=frontend-builder /app/client/dist ./greeva/static/client
+
 # Collect static files
-# Note: In production, Whitenoise or S3 will handle these.
-# Environment variables like DJANGO_SECRET_KEY might be needed here if not using a dummy during build.
-RUN python manage.py collectstatic --noinput --settings=config.settings.production || true
+# Use a dummy secret key for build time if not provided
+RUN DJANGO_SECRET_KEY=dummy-key-for-build python manage.py collectstatic --noinput --settings=config.settings.production || true
 
 # Expose port
 EXPOSE 8000
 
 # Run gunicorn
-# Note: Using gunicorn for WSGI. If WebSockets are enabled later, use daphne.
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "config.wsgi:application"]

@@ -29,9 +29,9 @@ def dashboard_view(request):
     is_admin = (role == 'admin')
 
     if is_admin:
-        devices_qs = Device.objects.all().order_by('-Created_At')
+        devices_qs = Device.objects.select_related('user').all().order_by('-Created_At')
     else:
-        devices_qs = Device.objects.filter(user=current_user).order_by('-Created_At')
+        devices_qs = Device.objects.select_related('user').filter(user=current_user).order_by('-Created_At')
 
     search_query = request.GET.get('q')
     if search_query:
@@ -76,14 +76,17 @@ def dashboard_view(request):
         'Humidity': {'value': 0, 'timestamp': timezone.now()},
         'pH': {'value': 0, 'timestamp': timezone.now()},
         'EC': {'value': 0, 'timestamp': timezone.now()},
-        'CO2': {'value': 0, 'timestamp': timezone.now()},
+        'Water Temp': {'value': 0, 'timestamp': timezone.now()},
     }
 
     if first_device:
         raw_selected = first_device.get('device_sensors') or []
         selected = {str(s).strip().lower() for s in raw_selected if str(s).strip()}
         if not selected:
-            selected = {'temperature', 'humidity', 'ph', 'ec', 'co2'}
+            selected = {'temperature', 'humidity', 'ph', 'ec', 'water_temp'}
+        if 'co2' in selected:
+            selected.discard('co2')
+            selected.add('water_temp')
 
         # Prefer external doser feed if available
         latest_doser = DoserRecord.objects.order_by('-source_timestamp', '-received_at').first()
@@ -95,12 +98,12 @@ def dashboard_view(request):
             latest_readings['Humidity'] = {'value': mapped.get('humidity') if mapped.get('humidity') is not None else 0, 'timestamp': ts}
             latest_readings['pH'] = {'value': mapped.get('ph') if mapped.get('ph') is not None else 0, 'timestamp': ts}
             latest_readings['EC'] = {'value': mapped.get('ec') if mapped.get('ec') is not None else 0, 'timestamp': ts}
-            latest_readings['CO2'] = {'value': mapped.get('co2') if mapped.get('co2') is not None else 0, 'timestamp': ts}
+            latest_readings['Water Temp'] = {'value': mapped.get('water_temp') if mapped.get('water_temp') is not None else (mapped.get('co2') if mapped.get('co2') is not None else 0), 'timestamp': ts}
         else:
             reading = (
                 SensorValue.objects
                 .filter(device_id=str(first_device['id']))
-                .order_by('-date')
+                .order_by('-date')[:1]  # Limit to 1 result for better performance
                 .first()
             )
 
@@ -110,7 +113,7 @@ def dashboard_view(request):
                 latest_readings['Humidity'] = {'value': reading.humidity if 'humidity' in selected and reading.humidity is not None else 0, 'timestamp': reading.date}
                 latest_readings['pH'] = {'value': reading.pH if 'ph' in selected and reading.pH is not None else 0, 'timestamp': reading.date}
                 latest_readings['EC'] = {'value': reading.EC if 'ec' in selected and reading.EC is not None else 0, 'timestamp': reading.date}
-                latest_readings['CO2'] = {'value': reading.CO2 if 'co2' in selected and reading.CO2 is not None else 0, 'timestamp': reading.date}
+                latest_readings['Water Temp'] = {'value': reading.CO2 if 'water_temp' in selected and reading.CO2 is not None else 0, 'timestamp': reading.date}
             else:
                 latest_readings = dict(base_readings)
     else:
@@ -121,7 +124,9 @@ def dashboard_view(request):
         'Humidity': True,
         'pH': True,
         'EC': True,
-        'CO2': True,
+        'Light': False,
+        'TDS': False,
+        'Water Temp': True,
     }
 
     enabled_sensors = request.session.get('sensor_preferences', {})
@@ -184,7 +189,7 @@ def get_latest_data(request, device_id):
         reading = (
             SensorValue.objects
             .filter(device_id=device_id)
-            .order_by('-date')
+            .order_by('-date')[:1]  # Limit to 1 result for better performance
             .first()
         )
 

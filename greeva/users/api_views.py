@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
-from django.core.mail import send_mail
+from greeva.utils.email_utils import send_templated_email
 from greeva.hydroponics.models_custom import UserDevice
 import random
 import re
@@ -16,10 +16,21 @@ def generate_otp():
 
 def send_otp_email(email, otp):
     subject = 'Your Verification Code'
-    message = f'Your verification code is: {otp}'
-    email_from = settings.DEFAULT_FROM_EMAIL
-    recipient_list = [email]
-    send_mail(subject, message, email_from, recipient_list, fail_silently=False)
+    send_templated_email(
+        subject=subject,
+        to_emails=email,
+        template_name='emails/otp_email.html',
+        text_template_name='emails/otp_email.txt',
+        context={
+            'subject': subject,
+            'otp': otp,
+            'recipient_name': '',
+            'brand_name': 'Smart IOT IITG',
+            'brand_tagline': 'Hydroponics Monitoring Platform',
+            'footer_note': 'If you did not request this code, you can ignore this email.',
+            'otp_valid_minutes': '10',
+        },
+    )
 
 
 def generate_short_user_id(role: str) -> str:

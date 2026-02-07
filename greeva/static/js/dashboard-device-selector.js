@@ -142,7 +142,7 @@ function renderMiniChart(label, currentValue) {
         // Initialize defaults if first time
         if (!localStorage.getItem('hiddenSensorsInitialized')) {
             // Default hidden sensors (Hydroponics extras)
-            const defaultHidden = ['potassium', 'water_temp', 'dissolved_oxygen', 'tds', 'orp', 'co2', 'water_level', 'flow_rate'];
+            const defaultHidden = ['potassium', 'water_temp', 'dissolved_oxygen', 'tds', 'orp', 'water_level', 'flow_rate'];
             localStorage.setItem('hiddenSensors', JSON.stringify(defaultHidden));
             localStorage.setItem('hiddenSensorsInitialized', 'true');
         }

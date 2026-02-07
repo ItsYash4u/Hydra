@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect
-from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import messages
 from .forms import ContactSupportForm
 from greeva.hydroponics.models_custom import UserDevice
+from greeva.utils.email_utils import send_templated_email
 
 def get_user_data(request):
     """Helper to get user data from session or DB if logged in"""
@@ -35,23 +35,26 @@ def contact_support_view(request):
             
             # Prepare Email
             subject = f"New Support Message from {name}"
-            email_body = f"""
-Name: {name}
-Email: {email}
-Phone: {phone}
-
-Message:
-{message}
-"""
             recipient_list = [settings.DEFAULT_FROM_EMAIL] # Send to admin/OTP email
             
             try:
-                send_mail(
-                    subject,
-                    email_body,
-                    settings.DEFAULT_FROM_EMAIL, # From address
-                    recipient_list,
-                    fail_silently=False
+                send_templated_email(
+                    subject=subject,
+                    to_emails=recipient_list,
+                    template_name='emails/contact_message.html',
+                    text_template_name='emails/contact_message.txt',
+                    context={
+                        'subject': subject,
+                        'name': name,
+                        'email': email,
+                        'phone': phone,
+                        'message': message,
+                        'source_label': 'Support',
+                        'brand_name': 'Smart IOT IITG',
+                        'brand_tagline': 'Hydroponics Monitoring Platform',
+                        'footer_note': 'You can reply to this email to reach the sender.',
+                    },
+                    reply_to=[email],
                 )
                 messages.success(request, "Your message has been sent successfully.")
                 return redirect('support:contact')
