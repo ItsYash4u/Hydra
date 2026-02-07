@@ -115,6 +115,9 @@ else:
     }
     MEDIA_URL = "/media/"
 
+# https://whitenoise.readthedocs.io/en/latest/django.html#non-standard-storage-backends
+WHITENOISE_MANIFEST_STRICT = False
+
 # EMAIL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#default-from-email
