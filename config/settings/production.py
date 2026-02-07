@@ -100,7 +100,7 @@ if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
             },
         },
         "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
         },
     }
     MEDIA_URL = f"https://{aws_s3_domain}/media/"
@@ -110,13 +110,10 @@ else:
             "BACKEND": "django.core.files.storage.FileSystemStorage",
         },
         "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
         },
     }
     MEDIA_URL = "/media/"
-
-# https://whitenoise.readthedocs.io/en/latest/django.html#non-standard-storage-backends
-WHITENOISE_MANIFEST_STRICT = False
 
 # EMAIL
 # ------------------------------------------------------------------------------
