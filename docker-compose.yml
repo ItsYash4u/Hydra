@@ -10,6 +10,9 @@ services:
       - .:/app
       - static_volume:/app/staticfiles
       - media_volume:/app/greeva/media
+      - db_volume:/app/data
+    environment:
+      - DATABASE_URL=sqlite:////app/data/db.sqlite3
     env_file:
       - .env
     expose:
@@ -30,3 +33,4 @@ services:
 volumes:
   static_volume:
   media_volume:
+  db_volume:
