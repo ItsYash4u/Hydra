@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='user',
             name='user_code',
-            field=models.CharField(blank=True, help_text='Short user identifier (e.g., USR001, ADM001)', max_length=10, unique=True, verbose_name='User Code'),
+            field=models.CharField(blank=True, null=True, help_text='Short user identifier (e.g., USR001, ADM001)', max_length=10, unique=True, verbose_name='User Code'),
         ),
     ]
