@@ -6,11 +6,98 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.utils import timezone
 import json
+from datetime import datetime, time
 
 from .models_custom import Device, SensorValue, UserDevice, DoserRecord
 from .integrations.nbri_fetch import map_payload_to_sensors, sync_nbri_records_if_stale
 from greeva.users.auth_helpers import custom_login_required, get_current_user
 from django.views.decorators.csrf import ensure_csrf_cookie
+
+
+SENSOR_RANGES = {
+    "Temperature": {"min": 18.0, "max": 28.0, "unit": "C", "decimals": 1},
+    "Humidity": {"min": 40.0, "max": 80.0, "unit": "%", "decimals": 1},
+    "pH": {"min": 5.5, "max": 6.5, "unit": "", "decimals": 2},
+    "EC": {"min": 1.2, "max": 2.4, "unit": "mS/cm", "decimals": 2},
+    "Water Temp": {"min": 18.0, "max": 26.0, "unit": "C", "decimals": 1},
+}
+
+SENSOR_KEY_MAP = {
+    "Temperature": "temperature",
+    "Humidity": "humidity",
+    "pH": "ph",
+    "EC": "ec",
+    "Water Temp": "water_temp",
+}
+
+
+def _build_range_alerts(device_name, values, timestamp, selected_keys=None):
+    if not values:
+        return []
+
+    alerts = []
+    for label, cfg in SENSOR_RANGES.items():
+        sensor_key = SENSOR_KEY_MAP.get(label)
+        if selected_keys and sensor_key not in selected_keys:
+            continue
+        raw_value = values.get(label)
+        try:
+            value = float(raw_value)
+        except (TypeError, ValueError):
+            continue
+
+        min_val = cfg["min"]
+        max_val = cfg["max"]
+        if value < min_val or value > max_val:
+            decimals = cfg.get("decimals", 1)
+            unit = cfg.get("unit", "")
+            unit_suffix = f" {unit}" if unit else ""
+            message = (
+                f"{label} out of range: {value:.{decimals}f}{unit_suffix} "
+                f"(expected {min_val:.{decimals}f}-{max_val:.{decimals}f}{unit_suffix})"
+            )
+            alerts.append(
+                {
+                    "message": message,
+                    "rule": {
+                        "severity": "warning",
+                        "device": {"name": device_name},
+                    },
+                    "triggered_at": timestamp or timezone.now(),
+                    "status": "active",
+                }
+            )
+    return alerts
+
+
+def _normalize_selected_keys(raw_selected):
+    selected = set()
+    for item in raw_selected or []:
+        if not item:
+            continue
+        key = str(item).strip().lower().replace(" ", "_")
+        if key == "co2":
+            key = "water_temp"
+        selected.add(key)
+    if not selected:
+        selected = {"temperature", "humidity", "ph", "ec", "water_temp"}
+    return selected
+
+
+def _is_out_of_range(value, min_val, max_val):
+    try:
+        val = float(value)
+    except (TypeError, ValueError):
+        return False
+    return val < min_val or val > max_val
+
+
+def _coerce_timestamp(value):
+    if isinstance(value, datetime):
+        return value if timezone.is_aware(value) else timezone.make_aware(value)
+    if value:
+        return timezone.make_aware(datetime.combine(value, time.min))
+    return timezone.now()
 
 
 @custom_login_required
@@ -79,20 +166,35 @@ def dashboard_view(request):
         'Water Temp': {'value': 0, 'timestamp': timezone.now()},
     }
 
+    selected_sensor_keys = None
+    alert_values = {}
+    alert_timestamp = None
+    alert_device_name = None
+
     if first_device:
         raw_selected = first_device.get('device_sensors') or []
-        selected = {str(s).strip().lower() for s in raw_selected if str(s).strip()}
-        if not selected:
-            selected = {'temperature', 'humidity', 'ph', 'ec', 'water_temp'}
-        if 'co2' in selected:
-            selected.discard('co2')
-            selected.add('water_temp')
+        selected = _normalize_selected_keys(raw_selected)
+        selected_sensor_keys = selected
+        alert_device_name = (
+            first_device.get('name')
+            or first_device.get('device_name')
+            or first_device.get('id')
+            or 'Device'
+        )
 
         # Prefer external doser feed if available
         latest_doser = DoserRecord.objects.order_by('-source_timestamp', '-received_at').first()
         if latest_doser:
             mapped = map_payload_to_sensors(latest_doser.payload if isinstance(latest_doser.payload, dict) else {})
             ts = latest_doser.source_timestamp or latest_doser.received_at
+            alert_values = {
+                'Temperature': mapped.get('temperature'),
+                'Humidity': mapped.get('humidity'),
+                'pH': mapped.get('ph'),
+                'EC': mapped.get('ec'),
+                'Water Temp': mapped.get('water_temp') if mapped.get('water_temp') is not None else mapped.get('co2'),
+            }
+            alert_timestamp = _coerce_timestamp(ts)
             latest_readings = dict(base_readings)
             latest_readings['Temperature'] = {'value': mapped.get('temperature') if mapped.get('temperature') is not None else 0, 'timestamp': ts}
             latest_readings['Humidity'] = {'value': mapped.get('humidity') if mapped.get('humidity') is not None else 0, 'timestamp': ts}
@@ -108,6 +210,14 @@ def dashboard_view(request):
             )
 
             if reading:
+                alert_values = {
+                    'Temperature': reading.temperature,
+                    'Humidity': reading.humidity,
+                    'pH': reading.pH,
+                    'EC': reading.EC,
+                    'Water Temp': reading.CO2,
+                }
+                alert_timestamp = _coerce_timestamp(reading.timestamp or reading.date)
                 latest_readings = dict(base_readings)
                 latest_readings['Temperature'] = {'value': reading.temperature if 'temperature' in selected and reading.temperature is not None else 0, 'timestamp': reading.date}
                 latest_readings['Humidity'] = {'value': reading.humidity if 'humidity' in selected and reading.humidity is not None else 0, 'timestamp': reading.date}
@@ -118,6 +228,66 @@ def dashboard_view(request):
                 latest_readings = dict(base_readings)
     else:
         latest_readings = dict(base_readings)
+
+    recent_alerts = _build_range_alerts(
+        alert_device_name or 'Device',
+        alert_values,
+        alert_timestamp,
+        selected_sensor_keys,
+    )
+
+    first_device_id = first_device.get('id') if first_device else None
+    for device in devices:
+        device_id = device.get('id')
+        if not device_id:
+            continue
+        if first_device_id and device_id == first_device_id:
+            continue
+
+        device_selected = _normalize_selected_keys(device.get('device_sensors') or [])
+        reading = (
+            SensorValue.objects
+            .filter(device_id=str(device_id))
+            .order_by('-timestamp', '-date')
+            .first()
+        )
+        if not reading:
+            continue
+
+        device_values = {
+            'Temperature': reading.temperature,
+            'Humidity': reading.humidity,
+            'pH': reading.pH,
+            'EC': reading.EC,
+            'Water Temp': reading.CO2,
+        }
+        device_ts = _coerce_timestamp(reading.timestamp or reading.date)
+        device_name = device.get('name') or device.get('device_name') or device_id
+        recent_alerts.extend(
+            _build_range_alerts(device_name, device_values, device_ts, device_selected)
+        )
+
+    recent_alerts.sort(
+        key=lambda alert: alert.get('triggered_at') or timezone.now(),
+        reverse=True,
+    )
+
+    for label, reading in latest_readings.items():
+        cfg = SENSOR_RANGES.get(label)
+        if not cfg:
+            continue
+        reading['min'] = cfg['min']
+        reading['max'] = cfg['max']
+        raw_value = alert_values.get(label)
+        reading['has_data'] = raw_value is not None
+        sensor_key = SENSOR_KEY_MAP.get(label)
+        if selected_sensor_keys and sensor_key not in selected_sensor_keys:
+            reading['out_of_range'] = False
+            continue
+        if raw_value is None:
+            reading['out_of_range'] = False
+            continue
+        reading['out_of_range'] = _is_out_of_range(raw_value, cfg['min'], cfg['max'])
 
     default_sensors = {
         'Temperature': True,
@@ -160,7 +330,7 @@ def dashboard_view(request):
         'offline_devices': offline_devices,
         'first_device': first_device,
         'latest_readings': latest_readings,
-        'recent_alerts': [],
+        'recent_alerts': recent_alerts,
         'user_name': display_name,
         'enabled_sensors': enabled_sensors,
         'is_admin': is_admin,

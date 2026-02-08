@@ -22,6 +22,20 @@
         z-index: 10;
     }
 
+    .sensor-card.sensor-warning {
+        border-color: rgba(255, 193, 7, 0.6);
+        box-shadow: 0 10px 22px rgba(255, 193, 7, 0.18);
+    }
+
+    .sensor-card.sensor-warning .sensor-icon-wrapper {
+        background: rgba(255, 193, 7, 0.18);
+        color: #ffc107;
+    }
+
+    .sensor-card.sensor-warning .sensor-icon-wrapper i {
+        color: #ffc107;
+    }
+
     .sensor-icon-wrapper {
         width: 48px;
         height: 48px;
@@ -225,6 +239,11 @@
             box-shadow: 0 12px 28px rgba(25, 135, 84, 0.2);
         }
 
+        .sensor-card.sensor-warning {
+            border-color: rgba(255, 193, 7, 0.75);
+            box-shadow: 0 12px 28px rgba(255, 193, 7, 0.25);
+        }
+
         /* Icon Wrapper */
         .sensor-icon-wrapper {
             width: 44px;
@@ -237,10 +256,18 @@
             transition: all 0.35s ease;
         }
 
+        .sensor-card.sensor-warning .sensor-icon-wrapper {
+            background: rgba(255, 193, 7, 0.18);
+        }
+
         .sensor-icon-wrapper i {
             font-size: 22px;
             color: #198754;
             transition: all 0.35s ease;
+        }
+
+        .sensor-card.sensor-warning .sensor-icon-wrapper i {
+            color: #ffc107;
         }
 
         /* Icon Animation */
@@ -251,6 +278,14 @@
         .sensor-card:hover .sensor-icon-wrapper i {
             color: #ffffff;
             transform: scale(1.15) rotate(-8deg);
+        }
+
+        .sensor-card.sensor-warning:hover .sensor-icon-wrapper {
+            background: #ffc107;
+        }
+
+        .sensor-card.sensor-warning:hover .sensor-icon-wrapper i {
+            color: #1f1f1f;
         }
 
         /* Chart Icon */
@@ -284,9 +319,10 @@
                     {% for sensor_type, reading in latest_readings.items %}
                     <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 sensor-col" data-sensor-type="{{ sensor_type }}">
 
-                        <div class="card sensor-card h-100 cursor-grab" data-sensor-card
+                        <div class="card sensor-card h-100 cursor-grab{% if reading.out_of_range %} sensor-warning{% endif %}" data-sensor-card
                             data-sensor-type="{{ sensor_type }}" data-sensor-name="{{ sensor_type }}"
-                            data-sensor-value="{{ reading.value }}">
+                            data-sensor-value="{{ reading.value }}" data-min="{{ reading.min|default_if_none:'' }}"
+                            data-max="{{ reading.max|default_if_none:'' }}">
 
                             <div class="card-body p-3">
                                 <!-- Top -->
@@ -306,7 +342,10 @@
                                         <i class="ti ti-activity"></i>
                                         {% endif %}
                                     </div>
-                                    <span class="badge bg-success-subtle text-success">Active</span>
+                                    <span
+                                        class="badge sensor-status-badge {% if reading.out_of_range %}bg-warning-subtle text-warning{% else %}bg-success-subtle text-success{% endif %}">
+                                        {% if reading.out_of_range %}Warning{% else %}Active{% endif %}
+                                    </span>
                                 </div>
 
                                 <!-- Name -->
@@ -1155,6 +1194,17 @@
                         'dissolved_oxygen': 'Dissolved Oxygen'
                     };
 
+                    function setCardWarningState(card, isWarning) {
+                        card.classList.toggle('sensor-warning', isWarning);
+                        const badge = card.querySelector('.sensor-status-badge');
+                        if (!badge) return;
+                        badge.classList.toggle('bg-success-subtle', !isWarning);
+                        badge.classList.toggle('text-success', !isWarning);
+                        badge.classList.toggle('bg-warning-subtle', isWarning);
+                        badge.classList.toggle('text-warning', isWarning);
+                        badge.textContent = isWarning ? 'Warning' : 'Active';
+                    }
+
                     Object.keys(data).forEach(key => {
                         const val = data[key];
                         if (val === null || val === undefined) return;
@@ -1342,6 +1392,18 @@
                                     valSpan.innerText = Number(val).toFixed(isPh ? 2 : 1);
                                     valSpan.style.opacity = '1';
                                 }, 200);
+                            }
+                            const numericVal = Number(val);
+                            if (!Number.isNaN(numericVal)) {
+                                const minRaw = card.getAttribute('data-min');
+                                const maxRaw = card.getAttribute('data-max');
+                                if (minRaw && maxRaw) {
+                                    const minVal = Number(minRaw);
+                                    const maxVal = Number(maxRaw);
+                                    if (!Number.isNaN(minVal) && !Number.isNaN(maxVal)) {
+                                        setCardWarningState(card, numericVal < minVal || numericVal > maxVal);
+                                    }
+                                }
                             }
                             const deviceIdEl = document.getElementById('active-device-id');
                             const deviceId = deviceIdEl ? deviceIdEl.innerText : null;
